@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    tools:background="@drawable/water">
+
+    //This is the top left
+
+    <ImageView
+        android:id="@+id/im1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/water"
+        app:layout_constraintBottom_toTopOf="@id/im3"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/im2"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:color/transparent"
+        tools:background="@drawable/water" />
+
+    //This is the top right
+
+    <ImageView
+        android:id="@+id/im2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+
+        app:layout_constraintBottom_toTopOf="@id/im4"
+        app:layout_constraintLeft_toRightOf="@id/im1"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:color/transparent" />
+
+
+    //This is the bottom left
+
+    <ImageView
+        android:id="@+id/im3"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/im4"
+        app:layout_constraintTop_toBottomOf="@id/im1"
+        app:srcCompat="@android:color/transparent" />
+
+
+    //This is the bottom right
+
+    <ImageView
+        android:id="@+id/im4"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/im3"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/im2"
+        app:srcCompat="@android:color/transparent" />
+
+    <ImageView
+        android:id="@+id/im5"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+
+        app:srcCompat="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

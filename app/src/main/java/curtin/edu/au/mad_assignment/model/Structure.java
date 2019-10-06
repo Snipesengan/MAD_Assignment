@@ -1,6 +1,10 @@
 package curtin.edu.au.mad_assignment.model;
 
-public abstract class Structure {
+import java.io.Serializable;
+
+import static androidx.core.graphics.drawable.IconCompat.getResources;
+
+public abstract class Structure implements Serializable {
 
     private int imageId;
 
@@ -9,4 +13,7 @@ public abstract class Structure {
         this.imageId = imageId;
     }
 
+    public Structure(Structure structure){
+        imageId = structure.imageId;
+    }
 }

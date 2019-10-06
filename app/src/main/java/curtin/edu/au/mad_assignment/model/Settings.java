@@ -1,6 +1,8 @@
 package curtin.edu.au.mad_assignment.model;
 
-public class Settings {
+import java.io.Serializable;
+
+public class Settings implements Serializable {
 
     public static final int DEFAULT_MAP_WIDTH = 50;
     public static final int DEFAULT_MAP_HEIGHT = 10;
