@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class Settings implements Serializable {
 
+
     public static final int DEFAULT_MAP_WIDTH = 50;
     public static final int DEFAULT_MAP_HEIGHT = 10;
     public static final int DEFAULT_INITIAL_MONEY = 1000;
@@ -17,9 +18,9 @@ public class Settings implements Serializable {
     public static final int DEFAULT_ROAD_BUILDING_COST = 20;
 
 
-    public int mapWidth,mapHeight,initialMoney,familySize,shopSize,salary;
-    public double taxRate;
-    public int serviceCost, houseBuildingCost,commBuildingsCost,roadBuildingCost;
+    private int mapWidth,mapHeight,initialMoney,familySize,shopSize,salary;
+    private double taxRate;
+    private int serviceCost, houseBuildingCost,commBuildingsCost,roadBuildingCost;
 
 
     public Settings()
@@ -27,14 +28,6 @@ public class Settings implements Serializable {
         this(DEFAULT_MAP_WIDTH,DEFAULT_MAP_HEIGHT,DEFAULT_INITIAL_MONEY,DEFAULT_FAMILY_SIZE,
                 DEFAULT_SHOP_SIZE,DEFAULT_SALARY,DEFAULT_TAX_RATE,DEFAULT_SERVICE_COST,
                 DEFAULT_HOUSE_BUILDING_COST,DEFAULT_COMM_BUILDING_COST,DEFAULT_ROAD_BUILDING_COST);
-    }
-
-    public Settings(int mapWidth, int mapHeight, int initialMoney)
-    {
-        this();
-        setMapHeight(mapHeight);
-        setMapWidth(mapWidth);
-        setInitialMoney(initialMoney);
     }
 
     public Settings(int mapWidth, int mapHeight, int initialMoney, int familySize, int shopSize,
