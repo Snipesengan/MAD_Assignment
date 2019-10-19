@@ -3,6 +3,8 @@ package curtin.edu.au.mad_assignment.model;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import java.io.Serializable;
 
@@ -20,20 +22,34 @@ public class  GameData implements Serializable {
     private int money;
     private int gameTime;
     private SQLiteDatabase db;
+    private Context context; //Useful for getting resources
 
-    public GameData() {
-        this.settings = new Settings();
+    public GameData(Context context, Settings settings) {
+        this.settings = settings;
         mapElements = new MapElement[settings.getMapHeight()][settings.getMapWidth()];
         money = settings.getInitialMoney();
         gameTime = 0;
+        this.context = context;
+
+        this.db = new GameDataDbHelper(
+                context.getApplicationContext()
+        ).getWritableDatabase();
     }
 
-    public static GameData getInstance(){
+    public static GameData getInstance(Context context){
         if(instance == null){
-            instance = new GameData();
+            instance = new GameData(context, new Settings());
         }
         return instance;
     }
+
+    public GameData resetGame(Settings settings)
+    {
+        deleteDatabases();
+        instance = new GameData(context, settings);
+        return instance;
+    }
+
 
     // Load GameData from database and StructureData
     public void load(Context context) {
@@ -41,20 +57,9 @@ public class  GameData implements Serializable {
                 context.getApplicationContext()
         ).getWritableDatabase();
 
-        // --------- LOAD SETTINGS ---------------
+        // --------- LOAD SETTINGS & GAME STATE ---------------
         GameDataCursor gameDataCursor = new GameDataCursor(
                 db.query(GameDataSchema.NAME,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null),
-                context
-        );
-
-        GameDataCursor mapElementCursor = new GameDataCursor(
-                db.query(GameDataSchema.MapElementsTable.NAME,
                         null,
                         null,
                         null,
@@ -74,6 +79,18 @@ public class  GameData implements Serializable {
             gameDataCursor.close();
         }
 
+        // -------- LOAD MAP ELEMENTS -------------------------
+        GameDataCursor mapElementCursor = new GameDataCursor(
+                db.query(GameDataSchema.MapElementsTable.NAME,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null),
+                context
+        );
+
         try{
             mapElementCursor.moveToFirst();
             while(!mapElementCursor.isAfterLast()){
@@ -83,6 +100,14 @@ public class  GameData implements Serializable {
         } finally {
             mapElementCursor.close();
         }
+    }
+
+    public void deleteDatabases()
+    {
+        String dropGameState = "DELETE FROM "+ GameDataSchema.NAME;
+        db.execSQL(dropGameState);
+        String dropMapElements = "DELETE FROM " + GameDataSchema.MapElementsTable.NAME;
+        db.execSQL(dropMapElements);
     }
 
     /**
@@ -143,5 +168,10 @@ public class  GameData implements Serializable {
 
     public void setSettings(Settings settings) {
         this.settings = settings;
+    }
+
+    public Bitmap getBitMapResources(int drawableId)
+    {
+        return BitmapFactory.decodeResource(context.getResources(),drawableId);
     }
 }

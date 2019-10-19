@@ -14,8 +14,11 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import java.io.Serializable;
+import java.util.Set;
 
 import curtin.edu.au.mad_assignment.R;
 import curtin.edu.au.mad_assignment.model.Commercial;
@@ -30,29 +33,73 @@ import curtin.edu.au.mad_assignment.model.StructureData;
 
 public class MainActivity extends AppCompatActivity implements Serializable {
 
+    private static final int REQUEST_CODE_SETTINGS =  0;
+
+    private Settings settings;
+    GameData gameData;
+    MapData mapData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        boolean reset = false;
-
-        // TODO: Initialise Model somewhere else
-        GameData gameData = GameData.getInstance();
-        gameData.setSettings(new Settings());
-        gameData.load(MainActivity.this); // This will initialise the data base
 
 
-        MapData mapDataInstance = MapData.getInstance();
-        mapDataInstance.regenerate();
+        Button newGameButton = findViewById(R.id.newGameButton);
+        Button loadGameButton = findViewById(R.id.loadGameButton);
+        GameData gamedataInstance = null;
 
-        for(int x = 0; x < gameData.getSettings().getMapWidth(); x++){
-            for(int y = 0; y < gameData.getSettings().getMapHeight(); y++){
-                MapElement mapElement = mapDataInstance.get(y,x);
-                gameData.addMapElement(x,y,mapElement);
+        //Setting up event handlers
+        newGameButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override public void onClick(View v)
+            {
+                //TODO: New Game Event
+
+                settings  = new Settings();
+                Intent settingsIntent = SettingsActivity.getIntent(MainActivity.this, settings);
+                // Start SettingsActivity for result
+                startActivityForResult(settingsIntent,REQUEST_CODE_SETTINGS);
+                // See onActivityForResult to see what happens next
             }
-        }
 
-        // For now let's start with the map activity
-        startActivity(new Intent(MainActivity.this,MapActivity.class));
+        });
+
+        loadGameButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override public void onClick(View v)
+            {
+                //TODO: Load Game Event
+            }
+        });
+
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent returnData)
+    {
+        super.onActivityResult(requestCode, resultCode, returnData);
+
+        if(resultCode == RESULT_OK && requestCode == REQUEST_CODE_SETTINGS)
+        {
+            settings = SettingsActivity.getSettings(returnData);
+            gameData = GameData.getInstance(MainActivity.this).resetGame(settings);
+            mapData = MapData.getInstance();
+
+            for(int x = 0; x < gameData.getSettings().getMapWidth(); x++){
+                for(int y = 0; y < gameData.getSettings().getMapHeight(); y++){
+                    MapElement mapElement = mapData.get(y,x);
+                    gameData.addMapElement(x,y,mapElement);
+                }
+            }
+            startActivity(new Intent(MainActivity.this, MapActivity.class));
+            finish();
+        }
+        else if(resultCode != RESULT_OK && requestCode == REQUEST_CODE_SETTINGS)
+        {
+            // This condition occurs when the user decides to return to the menu with out
+            // continuing with the creation of a new game.
+        }
+    }
+
 }

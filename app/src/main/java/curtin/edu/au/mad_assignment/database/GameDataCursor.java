@@ -86,11 +86,12 @@ public class GameDataCursor extends CursorWrapper {
         int swImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.SW_DRAWABLE_ID));
         int seImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.SE_DRAWABLE_ID));
 
-        mapElements[yPos][xPos] = new MapElement(buildable,nwImg,neImg,swImg,seImg,null);
-        if(ownerName == "NULL"){
+        mapElements[yPos][xPos] = new MapElement(buildable,nwImg,neImg,swImg,seImg,null,xPos,yPos);
+
+        if(ownerName != "NULL"){
             Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),imageId);
             Structure structure = structureData.findStructureByID(neImg);
-            mapElements[yPos][xPos].setStructure(structure,bitmap);
+            mapElements[yPos][xPos].setStructure(structure);
             mapElements[yPos][xPos].setOwnerName(ownerName);
         }
     }

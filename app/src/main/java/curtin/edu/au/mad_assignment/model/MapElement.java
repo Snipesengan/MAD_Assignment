@@ -19,10 +19,11 @@ public class MapElement implements Serializable {
     private ProxyBitmap bitmap;
     private Structure structure;
     private String ownerName;
+    private int xPos,yPos;
 
 
     public MapElement(boolean buildable, int northWest, int northEast,
-                      int southWest, int southEast, Structure structure)
+                      int southWest, int southEast, Structure structure,int xPos, int yPos)
     {
         this.buildable = buildable;
         this.terrainNorthWest = northWest;
@@ -31,6 +32,8 @@ public class MapElement implements Serializable {
         this.terrainSouthEast = southEast;
         this.structure = structure;
         this.ownerName = "NULL";
+        this.xPos = xPos;
+        this.yPos = yPos;
     }
 
     public String getOwnerName() {
@@ -66,7 +69,13 @@ public class MapElement implements Serializable {
         return terrainSouthEast;
     }
 
+    public int getxPos() {
+        return xPos;
+    }
 
+    public int getyPos() {
+        return yPos;
+    }
 
     /**
      * Retrieves the structure built on this map element.
@@ -77,10 +86,9 @@ public class MapElement implements Serializable {
         return structure;
     }
 
-    public void setStructure(Structure structure,Bitmap bitmap)
+    public void setStructure(Structure structure)
     {
         this.structure = structure;
-        this.bitmap = new ProxyBitmap(bitmap);
     }
 
     public void setOwnerName(String ownerName){

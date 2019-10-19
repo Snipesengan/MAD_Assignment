@@ -1,6 +1,5 @@
 package curtin.edu.au.mad_assignment.controller;
 
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -21,21 +20,15 @@ import curtin.edu.au.mad_assignment.model.MapData;
 import curtin.edu.au.mad_assignment.model.Structure;
 import curtin.edu.au.mad_assignment.model.StructureData;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link SelectorFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link SelectorFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class SelectorFragment extends Fragment {
-
-    private OnFragmentInteractionListener mListener;
 
     private GameData gameData;
     private StructureData structureData;
     private MapData mapData;
+    private SelectorAdapter selectorAdapter;
+    private Structure selectedStructure;
+    private int prevSelectedPosition;
+    private int selectedPosition;
 
     public SelectorFragment() {
         // Required empty public constructor
@@ -47,12 +40,21 @@ public class SelectorFragment extends Fragment {
         return fragment;
     }
 
+    public Structure getSelectedStructure()
+    {
+        return selectedStructure;
+    }
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        gameData = GameData.getInstance();
+        gameData = GameData.getInstance(getActivity());
         structureData = StructureData.getInstance();
         mapData = MapData.getInstance();
+        prevSelectedPosition = -1;
+        selectedPosition = -1;
+
     }
 
     @Override
@@ -72,40 +74,12 @@ public class SelectorFragment extends Fragment {
                 false));
 
         // Create the adapter and hook it up
-        SelectorAdapter selectorAdapter = new SelectorAdapter();
+        selectorAdapter = new SelectorAdapter();
         rv.setAdapter(selectorAdapter);
 
         // TODO: Setup event handlers
 
         return view;
-    }
-
-    // TODO: Hook method into UI event
-//    public void onButtonPressed(Uri uri) {
-//        if (mListener != null) {
-//            mListener.onFragmentInteraction(uri);
-//        }
-//    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
     }
 
     private class SelectorAdapter extends RecyclerView.Adapter<StructureVH>
@@ -119,7 +93,7 @@ public class SelectorFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull StructureVH holder, int position) {
-            holder.bind(structureData.get(position));
+            holder.bind(structureData.get(position), position);
         }
 
         @Override
@@ -132,16 +106,57 @@ public class SelectorFragment extends Fragment {
     {
         private ImageView structureImg;
         private TextView structureText;
+        private Structure bindStructure;
+        private int vhPosition;
+
 
         public StructureVH(LayoutInflater li, ViewGroup parent) {
             super(li.inflate(R.layout.list_selection, parent, false));
             structureImg = itemView.findViewById(R.id.structureImg);
             structureText = itemView.findViewById(R.id.structureTxt);
+
+            structureImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    prevSelectedPosition = selectedPosition;
+                    selectedPosition = vhPosition;
+
+                    // Tapping a structure twice de-selects it
+                    if(selectedPosition == prevSelectedPosition)
+                    {
+                        selectedStructure = (selectedStructure == null) ? bindStructure : null;
+                    }
+                    else
+                    {
+                        selectedStructure = bindStructure;
+                    }
+
+                    selectorAdapter.notifyItemChanged(selectedPosition);
+                    if(prevSelectedPosition >= 0)
+                    {
+                        selectorAdapter.notifyItemChanged(prevSelectedPosition);
+                    }
+                }
+            });
         }
 
-        public void bind(Structure structure) {
+        public void bind(Structure structure, int position) {
             structureImg.setImageResource(structure.getDrawableId());
             structureText.setText(structure.getLabel());
+
+            bindStructure = structure;
+            vhPosition = position;
+
+            // Make any item that is not selected transparent
+            if(position == selectedPosition && selectedStructure != null)
+            {
+                structureImg.setAlpha(255);
+            }
+            else
+            {
+                structureImg.setAlpha(127);
+            }
         }
     }
 

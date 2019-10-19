@@ -1,5 +1,8 @@
 package curtin.edu.au.mad_assignment.controller;
 
+import android.app.SharedElementCallback;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -11,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.Serializable;
 
@@ -19,6 +23,7 @@ import curtin.edu.au.mad_assignment.model.GameData;
 import curtin.edu.au.mad_assignment.model.MapData;
 import curtin.edu.au.mad_assignment.model.MapElement;
 import curtin.edu.au.mad_assignment.model.Settings;
+import curtin.edu.au.mad_assignment.model.Structure;
 import curtin.edu.au.mad_assignment.model.StructureData;
 
 /**
@@ -31,20 +36,23 @@ import curtin.edu.au.mad_assignment.model.StructureData;
  */
 public class MapFragment extends Fragment implements Serializable {
 
-
-    private OnFragmentInteractionListener mListener;
-
     private MapAdapter mapAdapter;
     private GameData gameData;
     private StructureData structureData;
     private MapData mapData;
 
+    private SelectorFragment selectorFragment = null;
+
+    public void setSelectorFragment(SelectorFragment sf)
+    {
+        selectorFragment = sf;
+    }
 
     public MapFragment() {
         // Required empty public constructor
     }
 
-    public static MapFragment newInstance() {
+    public static MapFragment newInstance(SelectorFragment sf) {
         MapFragment fragment = new MapFragment();
         return fragment;
     }
@@ -52,7 +60,7 @@ public class MapFragment extends Fragment implements Serializable {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        gameData = GameData.getInstance();
+        gameData = GameData.getInstance(getActivity());
         structureData = StructureData.getInstance();
         mapData = MapData.getInstance();
     }
@@ -67,7 +75,7 @@ public class MapFragment extends Fragment implements Serializable {
 
 
         // Specifying how RV should be laid out
-        Settings settings = GameData.getInstance().getSettings();
+        Settings settings = gameData.getSettings();
         rv.setLayoutManager(new GridLayoutManager(
                 getActivity(),
                 settings.getMapHeight(),
@@ -84,33 +92,10 @@ public class MapFragment extends Fragment implements Serializable {
 
     }
 
-    public void notifyAdapter(){
-        mapAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
-
     private class MapAdapter extends RecyclerView.Adapter<GridCellVH> implements Serializable
     {
+
+        ImageView structureImg;
 
         @Override
         public GridCellVH onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -123,7 +108,7 @@ public class MapFragment extends Fragment implements Serializable {
             int height = gameData.getSettings().getMapHeight();
             int row = position % height;
             int col = position / height;
-            vh.bind(gameData.getMapElement(col,row));
+            vh.bind(gameData.getMapElement(col,row), position);
         }
 
         @Override
@@ -141,10 +126,14 @@ public class MapFragment extends Fragment implements Serializable {
         private ImageView topRight;
         private ImageView botRight;
 
+        private MapElement bindMapElement;
+        private int position;
+        private int xPos, yPos;
+
         public GridCellVH(LayoutInflater li, ViewGroup parent)
         {
             super(li.inflate(R.layout.grid_cell, parent, false));
-            int size = parent.getMeasuredHeight() / GameData.getInstance().getSettings().getMapHeight() + 1;
+            int size = parent.getMeasuredHeight() / gameData.getSettings().getMapHeight() + 1;
             ViewGroup.LayoutParams lp = itemView.getLayoutParams();
             lp.width = size;
             lp.height = size;
@@ -154,17 +143,67 @@ public class MapFragment extends Fragment implements Serializable {
             botLeft = itemView.findViewById(R.id.imageView3);
             botRight = itemView.findViewById(R.id.imageView4);
             structureImg = itemView.findViewById(R.id.imageView5);
+
+            structureImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Structure selectedStructure = selectorFragment.getSelectedStructure();
+                    // TODO: Implement Game-Logic here
+                    if(selectedStructure != null)
+                    {
+                        /**
+                         * Constrains for placing a building
+                         *      - Player must be able to afford building
+                         *      - Cannot build if there is an existing building
+                         *      - Must be built adjacent to a road & buildable terrain
+                         */
+
+                        int cost = StructureData.getInstance().getCost(selectedStructure.getLabel(),
+                                gameData.getSettings());
+
+                        boolean buildable = gameData.checkBuildable(xPos,yPos);
+
+                        if(gameData.getMoney() > cost && buildable)
+                        {
+                            bindMapElement.setStructure(selectedStructure);
+
+                            //Update the map, would be more efficient
+                            mapAdapter.notifyItemChanged(position);
+                        }
+                        else
+                        {
+
+                        }
+
+
+
+                    }
+                }
+            });
         }
 
-        public void bind(MapElement mapElement) {
+        public void bind(MapElement mapElement,int position) {
 
             topLeft.setImageResource(mapElement.getNorthWest());
             topRight.setImageResource(mapElement.getNorthEast());
             botLeft.setImageResource(mapElement.getSouthWest());
             botRight.setImageResource(mapElement.getSouthEast());
 
+            // Each ViewHolder needs to store a reference to the mapElement every time it gets bind
+            bindMapElement = mapElement;
+            this.position = position;
+            int height = gameData.getSettings().getMapHeight();
+            yPos = position % height;
+            xPos = position / height;
+
             if (mapElement.getStructure() != null) {
-                structureImg.setImageBitmap(mapElement.getImage());
+                structureImg.setImageResource(mapElement.getStructure().getDrawableId());
+                structureImg.setAlpha(255);
+            }
+            else
+            {
+                // make it transparent
+                structureImg.setAlpha(0);
             }
         }
     }

@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 public class Settings implements Serializable {
 
+    // MAKE SURE TO UPDATET THIS VALUE
+    public static final int NUMBER_OF_SETTINGS = 11;
 
     public static final int DEFAULT_MAP_WIDTH = 30;
     public static final int DEFAULT_MAP_HEIGHT = 10;
@@ -46,11 +48,22 @@ public class Settings implements Serializable {
         setRoadBuildingCost(roadBuildingCost);
     }
 
+    public int getNumSettings(){ return NUMBER_OF_SETTINGS; }
+
     public int getMapWidth() {
         return mapWidth;
     }
 
     public void setMapWidth(int mapWidth) {
+
+        if(mapWidth <= 0){
+            throw new IllegalArgumentException("Width must be greater than zero");
+        }
+
+        if(mapWidth > MapData.WIDTH){
+            throw new IllegalArgumentException("Maximum width reached");
+        }
+
         this.mapWidth = mapWidth;
     }
 
@@ -59,6 +72,14 @@ public class Settings implements Serializable {
     }
 
     public void setMapHeight(int mapHeight) {
+        if(mapHeight <= 0){
+            throw new IllegalArgumentException("Height must be greater than zero");
+        }
+
+        if(mapHeight > MapData.HEIGHT){
+            throw new IllegalArgumentException("Maximum height reached");
+        }
+
         this.mapHeight = mapHeight;
     }
 
@@ -67,6 +88,9 @@ public class Settings implements Serializable {
     }
 
     public void setInitialMoney(int initialMoney) {
+        if(initialMoney <= 0){
+            throw new IllegalArgumentException("Initial money must be greater than zero");
+        }
         this.initialMoney = initialMoney;
     }
 

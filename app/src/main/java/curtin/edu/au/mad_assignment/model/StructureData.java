@@ -66,6 +66,29 @@ public class StructureData
 
     protected StructureData() {}
 
+    public int getCost(String label, Settings settings){
+        int cost;
+        switch(label.toUpperCase())
+        {
+            case "RESIDENTIAL":
+                cost = settings.getHouseBuildingCost();
+                break;
+
+            case "ROAD":
+                cost = settings.getRoadBuildingCost();
+                break;
+
+            case "COMMERCIAL":
+                cost = settings.getCommBuildingsCost();
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid building label " + label);
+        }
+
+        return cost;
+    }
+
     public Structure get(int index)
     {
         return structureList.get(index);

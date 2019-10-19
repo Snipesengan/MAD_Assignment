@@ -125,12 +125,13 @@ public class MapData
                             choose(waterS, waterE, waterSE,
                                     R.drawable.ic_coast_south, R.drawable.ic_coast_east,
                                     R.drawable.ic_coast_southeast, R.drawable.ic_coast_southeast_concave),
-                            null);
+                            null,
+                            j,i);
                 }
                 else
                 {
                     grid[i][j] = new MapElement(
-                            false, WATER, WATER, WATER, WATER, null);
+                            false, WATER, WATER, WATER, WATER, null,j,i);
                 }
             }
         }
