@@ -4,9 +4,9 @@ import java.io.Serializable;
 
 public class Road extends Structure implements Serializable {
 
-    public Road(int imageId) {
+    public Road(int imageId,String label) {
 
-        super(imageId);
+        super(imageId,label);
     }
 
     // Copy Constructor

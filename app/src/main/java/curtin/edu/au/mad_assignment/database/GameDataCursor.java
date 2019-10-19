@@ -1,10 +1,14 @@
 package curtin.edu.au.mad_assignment.database;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.CursorWrapper;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import java.security.InvalidParameterException;
 
+import curtin.edu.au.mad_assignment.R;
 import curtin.edu.au.mad_assignment.model.GameData;
 import curtin.edu.au.mad_assignment.model.MapElement;
 import curtin.edu.au.mad_assignment.model.Settings;
@@ -14,9 +18,12 @@ import curtin.edu.au.mad_assignment.model.StructureData;
 
 public class GameDataCursor extends CursorWrapper {
 
+    // Needs context in order to retrieve the drawables from resources
+    private Context context;
 
-    public GameDataCursor(Cursor cursor) {
+    public GameDataCursor(Cursor cursor, Context context) {
         super(cursor);
+        this.context = context;
     }
 
     public int loadMoney(){
@@ -26,6 +33,8 @@ public class GameDataCursor extends CursorWrapper {
     public int loadGameTime(){
         return getInt(getColumnIndex(GameDataSchema.GAME_TIME));
     }
+
+
 
     /**
      * Loads the setting from the SQL database
@@ -62,17 +71,27 @@ public class GameDataCursor extends CursorWrapper {
      * Loads the map element from the SQL database and store it in an array by reference
      * @param mapElements: 2D array to store the loaded mapElement
      */
-    public void loadMapElement(MapElement[][] mapElements,StructureData structureData){
+    public void loadMapElement(MapElement[][] mapElements, Context context)
+    {
+        StructureData structureData = StructureData.getInstance();
 
-        Structure structure;
-
+        //TODO: Fix this
         int xPos = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.X_POSITION));
         int yPos = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.Y_POSITION));
+        boolean buildable = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.BUILDABLE)) > 0;
         String ownerName = getString(getColumnIndex(GameDataSchema.MapElementsTable.Cols.OWNER_NAME));
-        String structureType = getString(getColumnIndex(GameDataSchema.MapElementsTable.Cols.STRUCTURE_TYPE));
-        int imageId = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.IMAGE_ID));
-        structure = structureData.getStructure(structureType,imageId);
+        int imageId = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.STRUCTURE_DRAWABLE_ID));
+        int nwImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.NW_DRAWABLE_ID));
+        int neImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.NE_DRAWABLE_ID));
+        int swImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.SW_DRAWABLE_ID));
+        int seImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.SE_DRAWABLE_ID));
 
-        mapElements[yPos][xPos] = new MapElement(structure,null,ownerName);
+        mapElements[yPos][xPos] = new MapElement(buildable,nwImg,neImg,swImg,seImg,null);
+        if(ownerName == "NULL"){
+            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),imageId);
+            Structure structure = structureData.findStructureByID(neImg);
+            mapElements[yPos][xPos].setStructure(structure,bitmap);
+            mapElements[yPos][xPos].setOwnerName(ownerName);
+        }
     }
 }

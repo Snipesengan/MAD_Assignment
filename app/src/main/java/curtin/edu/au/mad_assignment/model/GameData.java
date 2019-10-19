@@ -15,8 +15,6 @@ import curtin.edu.au.mad_assignment.database.GameDataSchema;
 public class  GameData implements Serializable {
 
     private static GameData instance = null;
-
-
     private Settings settings;
     private MapElement[][] mapElements;
     private int money;
@@ -38,7 +36,7 @@ public class  GameData implements Serializable {
     }
 
     // Load GameData from database and StructureData
-    public void load(Context context, StructureData structureData) {
+    public void load(Context context) {
         this.db = new GameDataDbHelper(
                 context.getApplicationContext()
         ).getWritableDatabase();
@@ -51,7 +49,8 @@ public class  GameData implements Serializable {
                         null,
                         null,
                         null,
-                        null)
+                        null),
+                context
         );
 
         GameDataCursor mapElementCursor = new GameDataCursor(
@@ -61,7 +60,8 @@ public class  GameData implements Serializable {
                         null,
                         null,
                         null,
-                        null)
+                        null),
+                context
         );
 
         try {
@@ -77,7 +77,7 @@ public class  GameData implements Serializable {
         try{
             mapElementCursor.moveToFirst();
             while(!mapElementCursor.isAfterLast()){
-                mapElementCursor.loadMapElement(mapElements,structureData);
+                mapElementCursor.loadMapElement(mapElements,context);
                 mapElementCursor.moveToNext();
             }
         } finally {
@@ -85,18 +85,41 @@ public class  GameData implements Serializable {
         }
     }
 
-
+    /**
+     * Populate MapElement[][] at position (x,y) with an instance of MapElement
+     * @param x: x position
+     * @param y: y position
+     * @param element: map element to be added
+     *
+     * Add to the SQL database whenever an element is added.
+     * SHOULD ONLY BE USED TO CREATE WHEN A NEW DATA BASE IS CREATE BECAUSE THIS WILL APPEND
+     * TO THE DATABASE NOT UPDATE IT
+     */
     public void addMapElement(int x, int y,  MapElement element){
+
+        if(element == null){
+            throw new IllegalArgumentException("Element must not be null");
+        }
+
         mapElements[y][x] = element;
+
+        //Update the database
         ContentValues cv = new ContentValues();
         cv.put(GameDataSchema.MapElementsTable.Cols.X_POSITION,x);
         cv.put(GameDataSchema.MapElementsTable.Cols.Y_POSITION,y);
-        cv.put(GameDataSchema.MapElementsTable.Cols.IMAGE_ID,element.getStructure().getImageId());
-        cv.put(GameDataSchema.MapElementsTable.Cols.OWNER_NAME, element.getOwnerName());
-
+        cv.put(GameDataSchema.MapElementsTable.Cols.NE_DRAWABLE_ID,element.getNorthEast());
+        cv.put(GameDataSchema.MapElementsTable.Cols.NW_DRAWABLE_ID,element.getNorthWest());
+        cv.put(GameDataSchema.MapElementsTable.Cols.SE_DRAWABLE_ID,element.getSouthEast());
+        cv.put(GameDataSchema.MapElementsTable.Cols.SW_DRAWABLE_ID,element.getSouthWest());
+        cv.put(GameDataSchema.MapElementsTable.Cols.OWNER_NAME,
+                element.getOwnerName());
+        if(element.getStructure() != null)
+        {
+            cv.put(GameDataSchema.MapElementsTable.Cols.STRUCTURE_DRAWABLE_ID,
+                    element.getStructure().getDrawableId());
+        }
+        db.insert(GameDataSchema.MapElementsTable.NAME, null, cv);
     }
-
-    public void updateDb(){}
 
     public MapElement getMapElement(int x, int y){
         return mapElements[y][x];

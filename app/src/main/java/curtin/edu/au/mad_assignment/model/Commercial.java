@@ -4,9 +4,10 @@ import java.io.Serializable;
 
 public class Commercial extends Structure implements Serializable {
 
-    public Commercial(int imageId) {
+    public Commercial(int imageId,String label)
+    {
 
-        super(imageId);
+        super(imageId,label);
     }
 
     //Copy Constructor

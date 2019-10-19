@@ -1,30 +1,24 @@
 package curtin.edu.au.mad_assignment.controller;
 
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import java.io.Serializable;
-import java.util.List;
 
 import curtin.edu.au.mad_assignment.R;
 import curtin.edu.au.mad_assignment.model.GameData;
+import curtin.edu.au.mad_assignment.model.MapData;
 import curtin.edu.au.mad_assignment.model.MapElement;
-import curtin.edu.au.mad_assignment.model.Structure;
+import curtin.edu.au.mad_assignment.model.Settings;
 import curtin.edu.au.mad_assignment.model.StructureData;
 
 /**
@@ -37,14 +31,14 @@ import curtin.edu.au.mad_assignment.model.StructureData;
  */
 public class MapFragment extends Fragment implements Serializable {
 
-    private static final String ARG_GAME_DATA = "curtin.edu.au.mad_assignment.model.game_data";
-    private static final String ARG_STRUCTURE_DATA = "curtin.edu.au.mad_assignment.model.structure_data";
 
-    private GameData gameData;
-    private StructureData structureData;
     private OnFragmentInteractionListener mListener;
 
     private MapAdapter mapAdapter;
+    private GameData gameData;
+    private StructureData structureData;
+    private MapData mapData;
+
 
     public MapFragment() {
         // Required empty public constructor
@@ -60,6 +54,7 @@ public class MapFragment extends Fragment implements Serializable {
         super.onCreate(savedInstanceState);
         gameData = GameData.getInstance();
         structureData = StructureData.getInstance();
+        mapData = MapData.getInstance();
     }
 
     @Override
@@ -67,20 +62,23 @@ public class MapFragment extends Fragment implements Serializable {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
-        //TODO : Set up event handlers
-        RecyclerView rv = (RecyclerView) view.findViewById(R.id.mapRecyclerView);
+
+        RecyclerView rv = view.findViewById(R.id.mapRecyclerView);
+
 
         // Specifying how RV should be laid out
+        Settings settings = GameData.getInstance().getSettings();
         rv.setLayoutManager(new GridLayoutManager(
                 getActivity(),
-                gameData.getSettings().getMapHeight(),
+                settings.getMapHeight(),
                 GridLayoutManager.HORIZONTAL,
                 false));
 
-        // Create the adapter and hook it up
-        mapAdapter = new MapAdapter(gameData, structureData);
+        // mapAdapter requires MapElements[][] to inflate each grid cell with structureImg/terrain img.
+        mapAdapter = new MapAdapter();
         rv.setAdapter(mapAdapter);
 
+        //TODO : Set up event handlers
 
         return view;
 
@@ -111,25 +109,17 @@ public class MapFragment extends Fragment implements Serializable {
         void onFragmentInteraction(Uri uri);
     }
 
-    public class MapAdapter extends RecyclerView.Adapter<MyMapViewHolder> implements Serializable
+    private class MapAdapter extends RecyclerView.Adapter<GridCellVH> implements Serializable
     {
-        private GameData gameData;
-        private StructureData structureData;
-
-        public MapAdapter(GameData gameData, StructureData structureData)
-        {
-            this.gameData = gameData;
-            this.structureData = structureData;
-        }
 
         @Override
-        public MyMapViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public GridCellVH onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater li = LayoutInflater.from(getActivity());
-            return new MyMapViewHolder(li,parent);
+            return new GridCellVH(li,parent);
         }
 
         @Override
-        public void onBindViewHolder(MyMapViewHolder vh, int position) {
+        public void onBindViewHolder(GridCellVH vh, int position) {
             int height = gameData.getSettings().getMapHeight();
             int row = position % height;
             int col = position / height;
@@ -143,27 +133,39 @@ public class MapFragment extends Fragment implements Serializable {
     }
 
 
-    private class MyMapViewHolder extends RecyclerView.ViewHolder implements Serializable
+    private class GridCellVH extends RecyclerView.ViewHolder implements Serializable
     {
-        private ImageView backgroundI;
-        private ImageView structureI;
+        private ImageView structureImg;
+        private ImageView topLeft;
+        private ImageView botLeft;
+        private ImageView topRight;
+        private ImageView botRight;
 
-        public MyMapViewHolder(LayoutInflater li, ViewGroup parent)
+        public GridCellVH(LayoutInflater li, ViewGroup parent)
         {
             super(li.inflate(R.layout.grid_cell, parent, false));
-            int size = parent.getMeasuredHeight() / gameData.getSettings().getMapHeight() + 2;
+            int size = parent.getMeasuredHeight() / GameData.getInstance().getSettings().getMapHeight() + 1;
             ViewGroup.LayoutParams lp = itemView.getLayoutParams();
             lp.width = size;
             lp.height = size;
 
-            //Layers
-            //backgroundI = (ImageView) itemView.findViewById(R.id.bgImg);
-            structureI = (ImageView) itemView.findViewById(R.id.strImg);
+            topLeft = itemView.findViewById(R.id.imageView);
+            topRight = itemView.findViewById(R.id.imageView2);
+            botLeft = itemView.findViewById(R.id.imageView3);
+            botRight = itemView.findViewById(R.id.imageView4);
+            structureImg = itemView.findViewById(R.id.imageView5);
         }
 
-        public void bind(MapElement mapElement){
-            Bitmap img = mapElement.getImage();
-            structureI.setImageBitmap(img);
+        public void bind(MapElement mapElement) {
+
+            topLeft.setImageResource(mapElement.getNorthWest());
+            topRight.setImageResource(mapElement.getNorthEast());
+            botLeft.setImageResource(mapElement.getSouthWest());
+            botRight.setImageResource(mapElement.getSouthEast());
+
+            if (mapElement.getStructure() != null) {
+                structureImg.setImageBitmap(mapElement.getImage());
+            }
         }
     }
 

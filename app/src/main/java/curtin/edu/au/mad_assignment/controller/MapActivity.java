@@ -19,6 +19,7 @@ public class MapActivity extends AppCompatActivity implements Serializable {
     private GameData gameData;
     private StructureData structureData;
     private MapFragment mapFg;
+    private SelectorFragment selFg;
 
 
     @Override
@@ -32,14 +33,21 @@ public class MapActivity extends AppCompatActivity implements Serializable {
         // Adding fragment to activity
         FragmentManager fm = getSupportFragmentManager();
 
-        // If Fragment is already there
         mapFg = (MapFragment) fm.findFragmentById(R.id.mapFrag_container);
-        // Otherwise create the new fragment
         if(mapFg == null){
             mapFg = MapFragment.newInstance(); //better than constructor
             fm.beginTransaction().
                     add(R.id.mapFrag_container,mapFg,"MapFrag").
                     commit();
         }
+
+        selFg = (SelectorFragment) fm.findFragmentById(R.id.selectorFrag_container);
+        if(selFg == null){
+            selFg = SelectorFragment.newInstance(); //better than constructor
+            fm.beginTransaction().
+                    add(R.id.selectorFrag_container,selFg,"SelectorFrag").
+                    commit();
+        }
+
     }
 }

@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Settings implements Serializable {
 
 
-    public static final int DEFAULT_MAP_WIDTH = 50;
+    public static final int DEFAULT_MAP_WIDTH = 30;
     public static final int DEFAULT_MAP_HEIGHT = 10;
     public static final int DEFAULT_INITIAL_MONEY = 1000;
     public static final int DEFAULT_FAMILY_SIZE = 4;

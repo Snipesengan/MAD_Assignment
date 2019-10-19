@@ -24,9 +24,13 @@ public class GameDataSchema {
         {
             public static final String X_POSITION = "x_position";
             public static final String Y_POSITION = "y_position";
+            public static final String BUILDABLE  = "buildable";
             public static final String OWNER_NAME = "owner_name";
-            public static final String STRUCTURE_TYPE = "structure_type";
-            public static final String IMAGE_ID = "image_id";
+            public static final String STRUCTURE_DRAWABLE_ID = "structure_drawable_id";
+            public static final String NW_DRAWABLE_ID = "nw_drawable_id";
+            public static final String NE_DRAWABLE_ID = "ne_drawable_id";
+            public static final String SW_DRAWABLE_ID = "sw_drawable_id";
+            public static final String SE_DRAWABLE_ID = "se_drawable_id";
         }
     }
 }

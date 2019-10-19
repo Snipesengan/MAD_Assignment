@@ -4,18 +4,21 @@ import java.io.Serializable;
 
 public abstract class Structure implements Serializable {
 
-    private int imageId;
+    private int drawableId;
+    private String label;
 
-    public Structure(int imageId)
+    public Structure(int drawableId,String label)
     {
-        this.imageId = imageId;
+        this.drawableId = drawableId;
+        this.label = label;
     }
 
     public Structure(Structure structure){
-        imageId = structure.imageId;
+        drawableId = structure.drawableId;
     }
 
-    public int getImageId(){
-        return imageId;
+    public int getDrawableId(){
+        return drawableId;
     }
+    public String getLabel(){ return label; }
 }

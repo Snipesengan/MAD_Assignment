@@ -4,8 +4,6 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import curtin.edu.au.mad_assignment.model.GameData;
-
 public class GameDataDbHelper extends SQLiteOpenHelper {
 
     private static final int VERSION = 1;
@@ -37,8 +35,11 @@ public class GameDataDbHelper extends SQLiteOpenHelper {
                 GameDataSchema.MapElementsTable.Cols.X_POSITION + " INTEGER, "  +
                 GameDataSchema.MapElementsTable.Cols.Y_POSITION + " INTEGER, "  +
                 GameDataSchema.MapElementsTable.Cols.OWNER_NAME + " TEXT, " +
-                GameDataSchema.MapElementsTable.Cols.STRUCTURE_TYPE + " TEXT, " +
-                GameDataSchema.MapElementsTable.Cols.IMAGE_ID + " INTEGER)");
+                GameDataSchema.MapElementsTable.Cols.STRUCTURE_DRAWABLE_ID + " INTEGER, " +
+                GameDataSchema.MapElementsTable.Cols.NW_DRAWABLE_ID + " INTEGER, " +
+                GameDataSchema.MapElementsTable.Cols.NE_DRAWABLE_ID + " INTEGER, " +
+                GameDataSchema.MapElementsTable.Cols.SW_DRAWABLE_ID + " INTEGER, " +
+                GameDataSchema.MapElementsTable.Cols.SE_DRAWABLE_ID + " INTEGER)");
     }
 
     @Override
