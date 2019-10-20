@@ -80,25 +80,20 @@ public class MainActivity extends AppCompatActivity implements Serializable {
     {
         super.onActivityResult(requestCode, resultCode, returnData);
 
+        // START GAME FROM SETTINGS SCREEN
         if(resultCode == RESULT_OK && requestCode == REQUEST_CODE_SETTINGS)
         {
             settings = SettingsActivity.getSettings(returnData);
-            gameData = GameData.getInstance(MainActivity.this).resetGame(settings);
-            mapData = MapData.getInstance();
+            gameData = GameData.getInstance(MainActivity.this);
+            gameData.setSettings(settings);
+            gameData.resetGame();
 
-            for(int x = 0; x < gameData.getSettings().getMapWidth(); x++){
-                for(int y = 0; y < gameData.getSettings().getMapHeight(); y++){
-                    MapElement mapElement = mapData.get(y,x);
-                    gameData.addMapElement(x,y,mapElement);
-                }
-            }
             startActivity(new Intent(MainActivity.this, MapActivity.class));
             finish();
-        }
+        } // RETURN TO MENU FROM SETTINGS SCREEN
         else if(resultCode != RESULT_OK && requestCode == REQUEST_CODE_SETTINGS)
         {
-            // This condition occurs when the user decides to return to the menu with out
-            // continuing with the creation of a new game.
+
         }
     }
 

@@ -15,16 +15,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import curtin.edu.au.mad_assignment.R;
-import curtin.edu.au.mad_assignment.model.GameData;
-import curtin.edu.au.mad_assignment.model.MapData;
 import curtin.edu.au.mad_assignment.model.Structure;
 import curtin.edu.au.mad_assignment.model.StructureData;
 
 public class SelectorFragment extends Fragment {
 
-    private GameData gameData;
-    private StructureData structureData;
-    private MapData mapData;
     private SelectorAdapter selectorAdapter;
     private Structure selectedStructure;
     private int prevSelectedPosition;
@@ -45,13 +40,15 @@ public class SelectorFragment extends Fragment {
         return selectedStructure;
     }
 
+    public void deselectStructure(){
+        selectedStructure = null;
+        selectorAdapter.notifyItemChanged(selectedPosition);
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        gameData = GameData.getInstance(getActivity());
-        structureData = StructureData.getInstance();
-        mapData = MapData.getInstance();
         prevSelectedPosition = -1;
         selectedPosition = -1;
 
@@ -93,12 +90,12 @@ public class SelectorFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull StructureVH holder, int position) {
-            holder.bind(structureData.get(position), position);
+            holder.bind(StructureData.get(position), position);
         }
 
         @Override
         public int getItemCount() {
-            return structureData.count();
+            return StructureData.count();
         }
     }
 
@@ -115,14 +112,24 @@ public class SelectorFragment extends Fragment {
             structureImg = itemView.findViewById(R.id.structureImg);
             structureText = itemView.findViewById(R.id.structureTxt);
 
+            /** SELECTOR CELL EVENTS
+             *
+             *  1. When user tap an item in the list, stores the reference to the structure
+             *    contained in the list. Retrieve it by call getSelectedMapElement()
+             *
+             *  Interactions with other fragments
+             *      * StructureDetailsFragment
+             *          This fragment contains information about the structure
+             *
+             */
             structureImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
+                    // Selecting/deselecting a structure
                     prevSelectedPosition = selectedPosition;
                     selectedPosition = vhPosition;
 
-                    // Tapping a structure twice de-selects it
                     if(selectedPosition == prevSelectedPosition)
                     {
                         selectedStructure = (selectedStructure == null) ? bindStructure : null;

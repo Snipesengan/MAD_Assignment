@@ -1,9 +1,9 @@
 package curtin.edu.au.mad_assignment.controller;
 
-import android.app.SharedElementCallback;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.graphics.ColorFilter;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -20,49 +20,36 @@ import java.io.Serializable;
 
 import curtin.edu.au.mad_assignment.R;
 import curtin.edu.au.mad_assignment.model.GameData;
-import curtin.edu.au.mad_assignment.model.MapData;
 import curtin.edu.au.mad_assignment.model.MapElement;
 import curtin.edu.au.mad_assignment.model.Settings;
 import curtin.edu.au.mad_assignment.model.Structure;
-import curtin.edu.au.mad_assignment.model.StructureData;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link MapFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link MapFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class MapFragment extends Fragment implements Serializable {
 
     private MapAdapter mapAdapter;
     private GameData gameData;
-    private StructureData structureData;
-    private MapData mapData;
+    private MapElement selectedMapElement;
+    private int prevSelectedPosition;
+    private int selectedPosition;
 
-    private SelectorFragment selectorFragment = null;
+    private SelectorFragment selectorFragment;
 
-    public void setSelectorFragment(SelectorFragment sf)
-    {
+    public MapFragment(SelectorFragment sf) {
         selectorFragment = sf;
     }
 
-    public MapFragment() {
-        // Required empty public constructor
+    public MapElement getSelectedMapElement()
+    {
+        return selectedMapElement;
     }
 
-    public static MapFragment newInstance(SelectorFragment sf) {
-        MapFragment fragment = new MapFragment();
-        return fragment;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         gameData = GameData.getInstance(getActivity());
-        structureData = StructureData.getInstance();
-        mapData = MapData.getInstance();
+        prevSelectedPosition = -1;
+        selectedPosition = -1;
     }
 
     @Override
@@ -82,7 +69,7 @@ public class MapFragment extends Fragment implements Serializable {
                 GridLayoutManager.HORIZONTAL,
                 false));
 
-        // mapAdapter requires MapElements[][] to inflate each grid cell with structureImg/terrain img.
+        // mapAdapter requires MapElements[][] to inflate each grid cell with structureImgLayer/terrain img.
         mapAdapter = new MapAdapter();
         rv.setAdapter(mapAdapter);
 
@@ -94,9 +81,6 @@ public class MapFragment extends Fragment implements Serializable {
 
     private class MapAdapter extends RecyclerView.Adapter<GridCellVH> implements Serializable
     {
-
-        ImageView structureImg;
-
         @Override
         public GridCellVH onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater li = LayoutInflater.from(getActivity());
@@ -120,15 +104,15 @@ public class MapFragment extends Fragment implements Serializable {
 
     private class GridCellVH extends RecyclerView.ViewHolder implements Serializable
     {
-        private ImageView structureImg;
+        private ImageView structureImgLayer;
         private ImageView topLeft;
         private ImageView botLeft;
         private ImageView topRight;
         private ImageView botRight;
 
         private MapElement bindMapElement;
-        private int position;
-        private int xPos, yPos;
+        private int vhPosition; //Position of this VH on the map
+        private int xPos, yPos; //xPosition and yPosition of this VH on the map
 
         public GridCellVH(LayoutInflater li, ViewGroup parent)
         {
@@ -142,41 +126,63 @@ public class MapFragment extends Fragment implements Serializable {
             topRight = itemView.findViewById(R.id.imageView2);
             botLeft = itemView.findViewById(R.id.imageView3);
             botRight = itemView.findViewById(R.id.imageView4);
-            structureImg = itemView.findViewById(R.id.imageView5);
+            structureImgLayer = itemView.findViewById(R.id.imageView5);
 
-            structureImg.setOnClickListener(new View.OnClickListener() {
+            /** GRID CELL EVENTS
+             *  Handles interaction with individual cells on the Map Fragment
+             *
+             *  1. When user tap a cell, it selects the cell and stores a reference
+             *    to the MapElement contained in the cell. Retrieve it by call
+             *    getSelectedMapElement()
+             *
+             *  Interactions with other fragments:
+             *      * SelectorFragment
+             *          Try to build selected fragment on the cell
+             *
+             *      *  MapElementFragment
+             *          This fragment will contain information relating to the selected structure
+             *
+             **/
+
+            structureImgLayer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Structure selectedStructure = selectorFragment.getSelectedStructure();
-                    // TODO: Implement Game-Logic here
-                    if(selectedStructure != null)
+                    prevSelectedPosition = selectedPosition;
+                    selectedPosition = vhPosition;
+
+                    // LOGIC FOR SELECTING/DESELECTING A MAP ELEMENT
+                    if(selectedPosition == prevSelectedPosition)
                     {
-                        /**
-                         * Constrains for placing a building
-                         *      - Player must be able to afford building
-                         *      - Cannot build if there is an existing building
-                         *      - Must be built adjacent to a road & buildable terrain
-                         */
+                        selectedMapElement = (selectedMapElement == null) ? bindMapElement : null;
+                    }
+                    else
+                    {
+                        selectedMapElement = bindMapElement;
+                    }
 
-                        int cost = StructureData.getInstance().getCost(selectedStructure.getLabel(),
-                                gameData.getSettings());
+                    mapAdapter.notifyItemChanged(selectedPosition);
+                    if(prevSelectedPosition >= 0)
+                    {
+                        mapAdapter.notifyItemChanged(prevSelectedPosition);
+                    }
 
-                        boolean buildable = gameData.checkBuildable(xPos,yPos);
+                    // ---
 
-                        if(gameData.getMoney() > cost && buildable)
+
+                    // WHEN SELECTOR FRAGMENT HAS AN SELECTED ITEM
+                    if(selectorFragment.getSelectedStructure() != null)
+                    {
+                        Structure structureToBeBuilt = selectorFragment.getSelectedStructure();
+                        try
                         {
-                            bindMapElement.setStructure(selectedStructure);
-
-                            //Update the map, would be more efficient
-                            mapAdapter.notifyItemChanged(position);
+                            gameData.buildStructure(xPos, yPos, structureToBeBuilt, structureToBeBuilt.getLabel());
+                            mapAdapter.notifyItemChanged(vhPosition);
                         }
-                        else
+                        catch(IllegalArgumentException e)
                         {
-
+                            Toast.makeText(gameData.getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-
-
-
+                        selectorFragment.deselectStructure();
                     }
                 }
             });
@@ -189,21 +195,41 @@ public class MapFragment extends Fragment implements Serializable {
             botLeft.setImageResource(mapElement.getSouthWest());
             botRight.setImageResource(mapElement.getSouthEast());
 
-            // Each ViewHolder needs to store a reference to the mapElement every time it gets bind
+            // Remember references to mapElement and vhPosition
+            this.vhPosition = position;
             bindMapElement = mapElement;
-            this.position = position;
-            int height = gameData.getSettings().getMapHeight();
-            yPos = position % height;
-            xPos = position / height;
+            yPos = position % gameData.getSettings().getMapHeight();
+            xPos = position / gameData.getSettings().getMapHeight();
 
+            // Set image resources for structure layer
             if (mapElement.getStructure() != null) {
-                structureImg.setImageResource(mapElement.getStructure().getDrawableId());
-                structureImg.setAlpha(255);
+                structureImgLayer.setImageResource(mapElement.getStructure().getDrawableId());
+                structureImgLayer.setAlpha(255);
             }
             else
             {
-                // make it transparent
-                structureImg.setAlpha(0);
+                // Grids that gets recycled still possibly contained images of a structure
+                // therefore they must be set to transparent if a structure do not exists at
+                // this vhPosition.
+                structureImgLayer.setAlpha(0);
+            }
+
+            // Make any item that is not selected transparent
+            if(position == selectedPosition && selectedMapElement != null)
+            {
+                topLeft.setColorFilter(0x76ffffff, PorterDuff.Mode.MULTIPLY );
+                topRight.setColorFilter(0x76ffffff, PorterDuff.Mode.MULTIPLY );
+                botLeft.setColorFilter(0x76ffffff, PorterDuff.Mode.MULTIPLY );
+                botRight.setColorFilter(0x76ffffff, PorterDuff.Mode.MULTIPLY );
+                structureImgLayer.setColorFilter(0x76ffffff, PorterDuff.Mode.MULTIPLY );
+            }
+            else
+            {
+                topLeft.clearColorFilter();
+                topRight.clearColorFilter();
+                botLeft.clearColorFilter();
+                botRight.clearColorFilter();
+                structureImgLayer.clearColorFilter();
             }
         }
     }

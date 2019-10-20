@@ -26,80 +26,48 @@ import curtin.edu.au.mad_assignment.model.Structure;
 public class StructureData
 {
 
+    public static final String ROAD_LABEL = "ROAD";
+    public static final String COMMERCIAL_LABEL = "COMMERCIAL";
+    public static final String RESIDENTIAL_LABEL = "RESIDENTIAL";
 
-    private List<Structure> structureList = Arrays.asList(new Structure[]{
-            new Commercial(R.drawable.ic_building_commercial1,"Commercial"),
-            new Commercial(R.drawable.ic_building_commercial2,"Commercial"),
-            new Commercial(R.drawable.ic_building_commercial3,"Commercial"),
-            new Commercial(R.drawable.ic_building_commercial4,"Commercial"),
-            new Commercial(R.drawable.ic_building_commercial5,"Commercial"),
-            new Road(R.drawable.ic_road_ns,"Road"),
-            new Road(R.drawable.ic_road_ew,"Road"),
-            new Road(R.drawable.ic_road_nsew,"Road"),
-            new Road(R.drawable.ic_road_ne,"Road"),
-            new Road(R.drawable.ic_road_nw,"Road"),
-            new Road(R.drawable.ic_road_se,"Road"),
-            new Road(R.drawable.ic_road_sw,"Road"),
-            new Road(R.drawable.ic_road_n,"Road"),
-            new Road(R.drawable.ic_road_e,"Road"),
-            new Road(R.drawable.ic_road_s,"Road"),
-            new Road(R.drawable.ic_road_w,"Road"),
-            new Road(R.drawable.ic_road_nse,"Road"),
-            new Road(R.drawable.ic_road_nsw,"Road"),
-            new Road(R.drawable.ic_road_new,"Road"),
-            new Road(R.drawable.ic_road_sew,"Road"),
-            new Residential(R.drawable.ic_building_residential1,"Residential"),
-            new Residential(R.drawable.ic_building_residential2,"Residential"),
-            new Residential(R.drawable.ic_building_residential3,"Residential")
+
+    private static List<Structure> structureList = Arrays.asList(new Structure[]{
+            new Commercial(R.drawable.ic_building_commercial1,COMMERCIAL_LABEL),
+            new Commercial(R.drawable.ic_building_commercial2,COMMERCIAL_LABEL),
+            new Commercial(R.drawable.ic_building_commercial3,COMMERCIAL_LABEL),
+            new Commercial(R.drawable.ic_building_commercial4,COMMERCIAL_LABEL),
+            new Commercial(R.drawable.ic_building_commercial5,COMMERCIAL_LABEL),
+            new Road(R.drawable.ic_road_ns,ROAD_LABEL),
+            new Road(R.drawable.ic_road_ew,ROAD_LABEL),
+            new Road(R.drawable.ic_road_nsew,ROAD_LABEL),
+            new Road(R.drawable.ic_road_ne,ROAD_LABEL),
+            new Road(R.drawable.ic_road_nw,ROAD_LABEL),
+            new Road(R.drawable.ic_road_se,ROAD_LABEL),
+            new Road(R.drawable.ic_road_sw,ROAD_LABEL),
+            new Road(R.drawable.ic_road_n,ROAD_LABEL),
+            new Road(R.drawable.ic_road_e,ROAD_LABEL),
+            new Road(R.drawable.ic_road_s,ROAD_LABEL),
+            new Road(R.drawable.ic_road_w,ROAD_LABEL),
+            new Road(R.drawable.ic_road_nse,ROAD_LABEL),
+            new Road(R.drawable.ic_road_nsw,ROAD_LABEL),
+            new Road(R.drawable.ic_road_new,ROAD_LABEL),
+            new Road(R.drawable.ic_road_sew,ROAD_LABEL),
+            new Residential(R.drawable.ic_building_residential1,RESIDENTIAL_LABEL),
+            new Residential(R.drawable.ic_building_residential2,RESIDENTIAL_LABEL),
+            new Residential(R.drawable.ic_building_residential3,RESIDENTIAL_LABEL)
     });
 
-    private static StructureData instance = null;
-
-    public static StructureData getInstance()
-    {
-        if(instance == null)
-        {
-            instance = new StructureData();
-        }
-        return instance;
-    }
-
-    protected StructureData() {}
-
-    public int getCost(String label, Settings settings){
-        int cost;
-        switch(label.toUpperCase())
-        {
-            case "RESIDENTIAL":
-                cost = settings.getHouseBuildingCost();
-                break;
-
-            case "ROAD":
-                cost = settings.getRoadBuildingCost();
-                break;
-
-            case "COMMERCIAL":
-                cost = settings.getCommBuildingsCost();
-                break;
-
-            default:
-                throw new IllegalArgumentException("Invalid building label " + label);
-        }
-
-        return cost;
-    }
-
-    public Structure get(int index)
+    public static Structure get(int index)
     {
         return structureList.get(index);
     }
 
-    public int count()
+    public static int count()
     {
         return structureList.size();
     }
 
-    public Structure findStructureByID(int drawableId)
+    public static Structure findStructureByID(int drawableId)
     {
         for(Structure structure : structureList)
         {
@@ -111,4 +79,18 @@ public class StructureData
         throw new NoSuchElementException("Structure with drawableID: " + drawableId + " DNE!");
     }
 
+    public static boolean isRoad(Structure structure)
+    {
+        return structure.getLabel().equals(ROAD_LABEL);
+    }
+
+    public static boolean isCommercial(Structure structure)
+    {
+        return structure.getLabel().equals(COMMERCIAL_LABEL);
+    }
+
+    public static boolean isResidential(Structure structure)
+    {
+        return structure.getLabel().equals(RESIDENTIAL_LABEL);
+    }
 }

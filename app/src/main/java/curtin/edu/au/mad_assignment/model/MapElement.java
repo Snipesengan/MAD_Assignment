@@ -31,7 +31,7 @@ public class MapElement implements Serializable {
         this.terrainSouthWest = southWest;
         this.terrainSouthEast = southEast;
         this.structure = structure;
-        this.ownerName = "NULL";
+        this.ownerName = "";
         this.xPos = xPos;
         this.yPos = yPos;
     }

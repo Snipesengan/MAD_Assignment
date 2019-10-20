@@ -73,26 +73,26 @@ public class GameDataCursor extends CursorWrapper {
      */
     public void loadMapElement(MapElement[][] mapElements, Context context)
     {
-        StructureData structureData = StructureData.getInstance();
-
-        //TODO: Fix this
-        int xPos = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.X_POSITION));
-        int yPos = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.Y_POSITION));
-        boolean buildable = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.BUILDABLE)) > 0;
-        String ownerName = getString(getColumnIndex(GameDataSchema.MapElementsTable.Cols.OWNER_NAME));
-        int imageId = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.STRUCTURE_DRAWABLE_ID));
-        int nwImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.NW_DRAWABLE_ID));
-        int neImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.NE_DRAWABLE_ID));
-        int swImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.SW_DRAWABLE_ID));
-        int seImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.SE_DRAWABLE_ID));
-
-        mapElements[yPos][xPos] = new MapElement(buildable,nwImg,neImg,swImg,seImg,null,xPos,yPos);
-
-        if(ownerName != "NULL"){
-            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),imageId);
-            Structure structure = structureData.findStructureByID(neImg);
-            mapElements[yPos][xPos].setStructure(structure);
-            mapElements[yPos][xPos].setOwnerName(ownerName);
-        }
+//        StructureData structureData = StructureData.getInstance();
+//
+//        //TODO: Fix this
+//        int xPos = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.X_POSITION));
+//        int yPos = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.Y_POSITION));
+//        boolean buildable = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.BUILDABLE)) > 0;
+//        String ownerName = getString(getColumnIndex(GameDataSchema.MapElementsTable.Cols.OWNER_NAME));
+//        int imageId = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.STRUCTURE_DRAWABLE_ID));
+//        int nwImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.NW_DRAWABLE_ID));
+//        int neImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.NE_DRAWABLE_ID));
+//        int swImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.SW_DRAWABLE_ID));
+//        int seImg = getInt(getColumnIndex(GameDataSchema.MapElementsTable.Cols.SE_DRAWABLE_ID));
+//
+//        mapElements[yPos][xPos] = new MapElement(buildable,nwImg,neImg,swImg,seImg,null,xPos,yPos);
+//
+//        if(ownerName != ""){
+//            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),imageId);
+//            Structure structure = structureData.findStructureByID(neImg);
+//            mapElements[yPos][xPos].setStructure(structure);
+//            mapElements[yPos][xPos].setOwnerName(ownerName);
+//        }
     }
 }
