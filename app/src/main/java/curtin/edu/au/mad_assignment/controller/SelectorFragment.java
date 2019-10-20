@@ -1,6 +1,6 @@
 package curtin.edu.au.mad_assignment.controller;
 
-import android.net.Uri;
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -25,24 +25,25 @@ public class SelectorFragment extends Fragment {
     private int prevSelectedPosition;
     private int selectedPosition;
 
+    private SelectorFragment.OnStructureSelectedListener callback;
+
     public SelectorFragment() {
         // Required empty public constructor
     }
-
 
     public static SelectorFragment newInstance() {
         SelectorFragment fragment = new SelectorFragment();
         return fragment;
     }
 
-    public Structure getSelectedStructure()
-    {
+    public Structure getSelectedStructure(){
         return selectedStructure;
     }
 
     public void deselectStructure(){
         selectedStructure = null;
         selectorAdapter.notifyItemChanged(selectedPosition);
+        selectedPosition = -1;
     }
 
 
@@ -79,6 +80,28 @@ public class SelectorFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof SelectorFragment.OnStructureSelectedListener) {
+            callback = (SelectorFragment.OnStructureSelectedListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnStructureSelectedListner");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        callback = null;
+    }
+
+    public interface OnStructureSelectedListener {
+
+        void onStructureSelectedListener(Structure structure);
+    }
+
     private class SelectorAdapter extends RecyclerView.Adapter<StructureVH>
     {
         @NonNull
@@ -112,37 +135,25 @@ public class SelectorFragment extends Fragment {
             structureImg = itemView.findViewById(R.id.structureImg);
             structureText = itemView.findViewById(R.id.structureTxt);
 
-            /** SELECTOR CELL EVENTS
-             *
-             *  1. When user tap an item in the list, stores the reference to the structure
-             *    contained in the list. Retrieve it by call getSelectedMapElement()
-             *
-             *  Interactions with other fragments
-             *      * StructureDetailsFragment
-             *          This fragment contains information about the structure
-             *
-             */
+
             structureImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
                     // Selecting/deselecting a structure
                     prevSelectedPosition = selectedPosition;
                     selectedPosition = vhPosition;
 
-                    if(selectedPosition == prevSelectedPosition)
-                    {
-                        selectedStructure = (selectedStructure == null) ? bindStructure : null;
-                    }
-                    else
-                    {
-                        selectedStructure = bindStructure;
-                    }
-
+                    flipSelected();
                     selectorAdapter.notifyItemChanged(selectedPosition);
                     if(prevSelectedPosition >= 0)
                     {
                         selectorAdapter.notifyItemChanged(prevSelectedPosition);
+                    }
+
+                    if(selectedStructure != null)
+                    {
+                        callback.onStructureSelectedListener(selectedStructure);
+                        selectorAdapter.notifyItemChanged(selectedPosition);
                     }
                 }
             });
@@ -165,6 +176,22 @@ public class SelectorFragment extends Fragment {
                 structureImg.setAlpha(127);
             }
         }
+
+        /**
+         *  Toggle selected structure if the user tap on the same cell twice
+         */
+        private void flipSelected()
+        {
+            if(selectedPosition == prevSelectedPosition)
+            {
+                selectedStructure = (selectedStructure == null) ? bindStructure : null;
+            }
+            else
+            {
+                selectedStructure = bindStructure;
+            }
+        }
+
     }
 
 

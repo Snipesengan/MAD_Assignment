@@ -1,9 +1,11 @@
 package curtin.edu.au.mad_assignment.controller;
 
+import android.content.Context;
 import android.graphics.ColorFilter;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -32,22 +34,32 @@ public class MapFragment extends Fragment implements Serializable {
     private int prevSelectedPosition;
     private int selectedPosition;
 
-    private SelectorFragment selectorFragment;
+    private MapFragment.OnMapElementSelectedListener callback;
 
-    public MapFragment(SelectorFragment sf) {
-        selectorFragment = sf;
+    public MapFragment() {
+        // Required empty public constructor
     }
 
-    public MapElement getSelectedMapElement()
-    {
+    public static MapFragment newInstance() {
+        MapFragment fragment = new MapFragment();
+        return fragment;
+    }
+
+    public MapElement getSelectedMapElement(){
         return selectedMapElement;
     }
 
+    public void deselectMapElement(){
+        selectedMapElement = null;
+        mapAdapter.notifyItemChanged(selectedPosition);
+        selectedPosition = -1;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         gameData = GameData.getInstance(getActivity());
+        selectedMapElement = null;
         prevSelectedPosition = -1;
         selectedPosition = -1;
     }
@@ -73,10 +85,30 @@ public class MapFragment extends Fragment implements Serializable {
         mapAdapter = new MapAdapter();
         rv.setAdapter(mapAdapter);
 
-        //TODO : Set up event handlers
 
         return view;
+    }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnMapElementSelectedListener) {
+            callback = (MapFragment.OnMapElementSelectedListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnMapElementSelectedListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        callback = null;
+    }
+
+    public interface OnMapElementSelectedListener {
+
+        void onMapElementSelected(MapElement mapElement, int xPos, int yPos);
     }
 
     private class MapAdapter extends RecyclerView.Adapter<GridCellVH> implements Serializable
@@ -128,21 +160,7 @@ public class MapFragment extends Fragment implements Serializable {
             botRight = itemView.findViewById(R.id.imageView4);
             structureImgLayer = itemView.findViewById(R.id.imageView5);
 
-            /** GRID CELL EVENTS
-             *  Handles interaction with individual cells on the Map Fragment
-             *
-             *  1. When user tap a cell, it selects the cell and stores a reference
-             *    to the MapElement contained in the cell. Retrieve it by call
-             *    getSelectedMapElement()
-             *
-             *  Interactions with other fragments:
-             *      * SelectorFragment
-             *          Try to build selected fragment on the cell
-             *
-             *      *  MapElementFragment
-             *          This fragment will contain information relating to the selected structure
-             *
-             **/
+
 
             structureImgLayer.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -150,39 +168,17 @@ public class MapFragment extends Fragment implements Serializable {
                     prevSelectedPosition = selectedPosition;
                     selectedPosition = vhPosition;
 
-                    // LOGIC FOR SELECTING/DESELECTING A MAP ELEMENT
-                    if(selectedPosition == prevSelectedPosition)
-                    {
-                        selectedMapElement = (selectedMapElement == null) ? bindMapElement : null;
-                    }
-                    else
-                    {
-                        selectedMapElement = bindMapElement;
-                    }
-
+                    flipSelected();
                     mapAdapter.notifyItemChanged(selectedPosition);
                     if(prevSelectedPosition >= 0)
                     {
                         mapAdapter.notifyItemChanged(prevSelectedPosition);
                     }
 
-                    // ---
-
-
-                    // WHEN SELECTOR FRAGMENT HAS AN SELECTED ITEM
-                    if(selectorFragment.getSelectedStructure() != null)
+                    if(selectedMapElement != null)
                     {
-                        Structure structureToBeBuilt = selectorFragment.getSelectedStructure();
-                        try
-                        {
-                            gameData.buildStructure(xPos, yPos, structureToBeBuilt, structureToBeBuilt.getLabel());
-                            mapAdapter.notifyItemChanged(vhPosition);
-                        }
-                        catch(IllegalArgumentException e)
-                        {
-                            Toast.makeText(gameData.getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                        selectorFragment.deselectStructure();
+                        callback.onMapElementSelected(selectedMapElement,xPos,yPos);
+                        mapAdapter.notifyItemChanged(selectedPosition);
                     }
                 }
             });
@@ -232,6 +228,24 @@ public class MapFragment extends Fragment implements Serializable {
                 structureImgLayer.clearColorFilter();
             }
         }
+
+
+        /**
+         *  Toggle selected MapElement if the user taps on the same item twice
+         */
+        private void flipSelected()
+        {
+            // LOGIC FOR SELECTING/DESELECTING A MAP ELEMENT
+            if(selectedPosition == prevSelectedPosition)
+            {
+                selectedMapElement = (selectedMapElement == null) ? bindMapElement : null;
+            }
+            else
+            {
+                selectedMapElement = bindMapElement;
+            }
+        }
+
     }
 
 }

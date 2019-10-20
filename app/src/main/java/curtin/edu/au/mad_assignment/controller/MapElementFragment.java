@@ -33,11 +33,9 @@ public class MapElementFragment extends Fragment {
      *      - Feature for taking a thumbnail
      *
      */
-    private static final String MAP_FRAGMENT = "curtin.edu.au.mad_assignment.controller.MapElementFragment.MAP_FRAGMENT";
+    private static final String MAP_ELEMENT = "curtin.edu.au.mad_assignment.controller.MapElementFragment.MAP_ELEMENT";
 
-    // Class Fields
-    private MapFragment mapFragment;
-    private MapElement displayedMapElement;
+    private MapElement mapElement;
 
     private OnFragmentInteractionListener mListener;
 
@@ -55,7 +53,7 @@ public class MapElementFragment extends Fragment {
     public static MapElementFragment newInstance(MapFragment mapFragment) {
         MapElementFragment fragment = new MapElementFragment();
         Bundle args = new Bundle();
-        args.putSerializable(MAP_FRAGMENT,mapFragment);
+        args.putSerializable(MAP_ELEMENT,mapFragment);
         fragment.setArguments(args);
         return fragment;
     }
@@ -64,8 +62,7 @@ public class MapElementFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mapFragment = (MapFragment) getArguments().getSerializable(MAP_FRAGMENT);
-            displayedMapElement = mapFragment.getSelectedMapElement();
+            mapElement = (MapElement) getArguments().getSerializable(MAP_ELEMENT);
         }
     }
 
@@ -77,11 +74,11 @@ public class MapElementFragment extends Fragment {
     }
 
     // TODO: Implement feature to take a photo
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
+//    public void onButtonPressed(Uri uri) {
+//        if (mListener != null) {
+//            mListener.onFragmentInteraction(uri);
+//        }
+//    }
 
     @Override
     public void onAttach(Context context) {
