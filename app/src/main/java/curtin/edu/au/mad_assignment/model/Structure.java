@@ -13,12 +13,18 @@ public abstract class Structure implements Serializable {
         this.label = label;
     }
 
-    public Structure(Structure structure){
+    public Structure(Structure structure)
+    {
         drawableId = structure.drawableId;
     }
 
-    public int getDrawableId(){
+    public int getDrawableId()
+    {
         return drawableId;
     }
-    public String getLabel(){ return label; }
+
+    public String getLabel()
+    {
+        return label;
+    }
 }

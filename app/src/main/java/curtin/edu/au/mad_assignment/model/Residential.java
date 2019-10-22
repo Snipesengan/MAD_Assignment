@@ -9,10 +9,4 @@ public class Residential extends Structure implements Serializable {
         super(imageId,label);
     }
 
-    //Copy Constructor
-    public Residential(Residential residential){
-        super(residential);
-    }
-
-
 }

@@ -3,11 +3,8 @@ package curtin.edu.au.mad_assignment.model;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
 import java.io.Serializable;
-import java.util.Map;
 
 
 import curtin.edu.au.mad_assignment.database.GameDataCursor;
@@ -23,43 +20,51 @@ public class  GameData implements Serializable {
     private MapElement[][] mapElements;
     private int money;
     private int gameTime;
-    private SQLiteDatabase db;
-    private Context context; //Useful for getting resources
+    private int population;
+    private int nResidential, nCommercial;
 
-    public GameData(Context context, Settings settings) {
+    public GameData(Settings settings) {
         this.settings = settings;
         mapElements = new MapElement[settings.getMapHeight()][settings.getMapWidth()];
         money = settings.getInitialMoney();
         gameTime = 0;
-        this.context = context;
-
-        this.db = new GameDataDbHelper(
-                context.getApplicationContext()
-        ).getWritableDatabase();
+        nCommercial = 0;
+        nResidential = 0;
+        population = 0;
     }
 
-    public static GameData getInstance(Context context){
+    public static GameData getInstance(){
         if(instance == null){
-            instance = new GameData(context, new Settings());
+            instance = new GameData(new Settings());
         }
         return instance;
     }
 
     public void resetGame()
     {
-        deleteDatabases(); // SHOULD BE DONE BEFORE UPDATING DATA BASE
+        mapElements = new MapElement[settings.getMapHeight()][settings.getMapWidth()];
+        money = settings.getInitialMoney();
+        gameTime = 0;
+        nCommercial = 0;
+        nResidential = 0;
+        population = 0;
         regenerateMap();
+    }
 
-        // Reset Game state
-        instance.setGameTime(0);
-        instance.setMoney(settings.getInitialMoney());
+    public void update()
+    {
+        gameTime += 1;
+        money += getIncome();
+        population = nResidential * settings.getFamilySize();
+
+        //TODO: Update Database for game update()
     }
 
     /** ------- GAME FUNCTIONALITY METHODS -----**/
 
     /**
      *
-     * Place a structure on the map by modifying the contents of gameElements array
+     * Place a structure on the map by modifying the contents of gameElements array.
      * @param xPos
      * @param yPos
      * @param structure
@@ -73,7 +78,7 @@ public class  GameData implements Serializable {
      */
     public void buildStructure(int xPos, int yPos, Structure structure, String ownerName)
     {
-        int cost = getCost(structure);
+        int cost = getStructureCost(structure);
         boolean buildable = mapElements[yPos][xPos].isBuildable();
 
         if(money < cost)
@@ -104,11 +109,65 @@ public class  GameData implements Serializable {
         mapElements[yPos][xPos].setStructure(structure);
         mapElements[yPos][xPos].setOwnerName(ownerName);
         money = money - cost;
+
+
+        if(StructureData.isResidential(structure))
+        {
+            nResidential ++;
+        }
+        else if(StructureData.isCommercial(structure))
+        {
+            nCommercial ++;
+        }
+        else if(StructureData.isRoad(structure)){}
+        else
+        {
+            throw new UnknownStructureException("Unknown structure of type " + structure + structure.getLabel());
+        }
+
+        // TODO: UPDATE DATABASES ON CONSTRUCTION
+    }
+
+
+    /**
+     *  Demolishes a structure.
+     * @param xPos
+     * @param yPos
+     *
+     * Assertions:
+     *  - A structure must exists at mapElement[yPos][xPos]
+     */
+    public void demolishStructure(int xPos, int yPos)
+    {
+        MapElement me = mapElements[yPos][xPos];
+        Structure toBDemo = me.getStructure();
+        if(toBDemo == null)
+        {
+            throw new IllegalArgumentException("Structure DNE at: " + mapElements[yPos][xPos].getLocationString());
+        }
+
+        me.setStructure(null);
+        me.setOwnerName("");
+
+        if(StructureData.isResidential(toBDemo))
+        {
+            nResidential --;
+        }
+        else if(StructureData.isCommercial(toBDemo))
+        {
+            nCommercial --;
+        }
+        else if(StructureData.isRoad(toBDemo)){}
+        else
+        {
+            throw new UnknownStructureException("Unknown structure of type " + toBDemo + toBDemo.getLabel());
+        }
+
+        // TODO: UPDATE DATABASE ON DEMOLITION
     }
 
     /**
      *  Regenerates the map. Overwrite the content of mapElements
-     *  WARNING: This does not update the Database
      */
     public void regenerateMap()
     {
@@ -122,8 +181,16 @@ public class  GameData implements Serializable {
         }
     }
 
-    public int getCost(Structure structure) {
+    /**
+     * Returns cost of a structure. This method couples with StructureData in order to determine the
+     * type of structure.
+     * @param structure
+     * @return Cost of the structure
+     */
+    public int getStructureCost(Structure structure) {
+
         int cost;
+
         if(StructureData.isRoad(structure))
         {
             cost = settings.getRoadBuildingCost();
@@ -144,7 +211,23 @@ public class  GameData implements Serializable {
         return cost;
     }
 
-    /** ------- CUSTOM EXCEPTIONS ------ **/
+    public double getEmploymentRate()
+    {
+        double rate = 0;
+
+        if(population > 0)
+        {
+            rate = (double) nCommercial * (double) settings.getShopSize() / (double) population;
+        }
+        return 1 < rate ? rate : 1;
+    }
+
+    public double getIncome()
+    {
+        return population * (getEmploymentRate() * settings.getSalary() * settings.getTaxRate() - settings.getServiceCost());
+    }
+
+    /** ------- EXCEPTIONS CLASSES------ **/
 
     /**
      * Throw this exception whenever the game has not implemented the functionality for this
@@ -156,50 +239,94 @@ public class  GameData implements Serializable {
         {
             super(errorMsg);
         }
-
     }
 
     /** ------- DATA BASE METHODS ------- **/
 
-    /**
-     * Populate MapElement[][] at position (x,y) with an instance of MapElement
-     * @param x: x position
-     * @param y: y position
-     * @param element: map element to be added
-     *
-     * Add to the SQL database whenever an element is added.
-     * SHOULD ONLY BE USED TO CREATE WHEN A NEW DATA BASE IS CREATE BECAUSE THIS WILL APPEND
-     * TO THE DATABASE NOT UPDATE IT
-     */
-    public void addMapElement(int x, int y,  MapElement element){
+    public void dropAllDatabases(Context context)
+    {
+        SQLiteDatabase db = new GameDataDbHelper(
+                context.getApplicationContext()
+        ).getWritableDatabase();
 
-        if(element == null){
-            throw new IllegalArgumentException("Element must not be null");
-        }
-
-        mapElements[y][x] = element;
-
-        //Update the database
-        ContentValues cv = new ContentValues();
-        cv.put(GameDataSchema.MapElementsTable.Cols.X_POSITION,x);
-        cv.put(GameDataSchema.MapElementsTable.Cols.Y_POSITION,y);
-        cv.put(GameDataSchema.MapElementsTable.Cols.NE_DRAWABLE_ID,element.getNorthEast());
-        cv.put(GameDataSchema.MapElementsTable.Cols.NW_DRAWABLE_ID,element.getNorthWest());
-        cv.put(GameDataSchema.MapElementsTable.Cols.SE_DRAWABLE_ID,element.getSouthEast());
-        cv.put(GameDataSchema.MapElementsTable.Cols.SW_DRAWABLE_ID,element.getSouthWest());
-        cv.put(GameDataSchema.MapElementsTable.Cols.OWNER_NAME,
-                element.getOwnerName());
-        if(element.getStructure() != null)
-        {
-            cv.put(GameDataSchema.MapElementsTable.Cols.STRUCTURE_DRAWABLE_ID,
-                    element.getStructure().getDrawableId());
-        }
-        db.insert(GameDataSchema.MapElementsTable.NAME, null, cv);
+        String dropGameState = "DROP TABLE IF EXISTS "+ GameDataSchema.NAME;
+        db.execSQL(dropGameState);
+        String dropMapElements = "DROP TABLE IF EXISTS " + GameDataSchema.MapElementsTable.NAME;
+        db.execSQL(dropMapElements);
+        db.close();
     }
 
-    // Load GameData from database and StructureData
+    /**
+     * Saves the game.
+     * WARNING: This will re-create all the database by explicitly calling SQLiteDBHelper onCreate()
+     * May have un-intended consequences?
+     * @param context
+     */
+    public void save(Context context) {
+
+        ContentValues cv;
+        dropAllDatabases(context);
+        GameDataDbHelper dbHelper = new GameDataDbHelper(
+                context.getApplicationContext()
+        );
+        dbHelper.onCreate(dbHelper.getWritableDatabase());
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // Saving Settings
+        cv = new ContentValues();
+        cv.put(GameDataSchema.MAP_WIDTH,settings.getMapWidth());
+        cv.put(GameDataSchema.MAP_HEIGHT,settings.getMapHeight());
+        cv.put(GameDataSchema.INITIAL_MONEY,settings.getInitialMoney());
+        cv.put(GameDataSchema.FAMILY_SIZE,settings.getFamilySize());
+        cv.put(GameDataSchema.SHOP_SIZE,settings.getShopSize());
+        cv.put(GameDataSchema.SALARY,settings.getSalary());
+        cv.put(GameDataSchema.TAX_RATE,settings.getTaxRate());
+        cv.put(GameDataSchema.SERVICE_COST,settings.getServiceCost());
+        cv.put(GameDataSchema.COMM_BUILDING_COST,settings.getCommBuildingsCost());
+        cv.put(GameDataSchema.HOUSE_BUILDING_COST,settings.getHouseBuildingCost());
+        cv.put(GameDataSchema.ROAD_BUILDING_COST,settings.getRoadBuildingCost());
+
+        // Saving player's progress
+        cv.put(GameDataSchema.MONEY,money);
+        cv.put(GameDataSchema.GAME_N_COMMERCIAL,nCommercial);
+        cv.put(GameDataSchema.GAME_N_RESIDENTIAL,nResidential);
+        cv.put(GameDataSchema.GAME_TIME,gameTime);
+        cv.put(GameDataSchema.GAME_POPULATION,population);
+
+        db.insert(GameDataSchema.NAME,null,cv);
+
+        // Saving content of MapElement[][]
+        for(int x = 0; x < settings.getMapWidth(); x++)
+        {
+            for(int y = 0; y < settings.getMapHeight(); y++)
+            {
+                cv = new ContentValues();
+                MapElement element = mapElements[y][x];
+
+                cv.put(GameDataSchema.MapElementsTable.Cols.X_POSITION,x);
+                cv.put(GameDataSchema.MapElementsTable.Cols.Y_POSITION,y);
+                cv.put(GameDataSchema.MapElementsTable.Cols.NE_DRAWABLE_ID,element.getNorthEast());
+                cv.put(GameDataSchema.MapElementsTable.Cols.NW_DRAWABLE_ID,element.getNorthWest());
+                cv.put(GameDataSchema.MapElementsTable.Cols.SE_DRAWABLE_ID,element.getSouthEast());
+                cv.put(GameDataSchema.MapElementsTable.Cols.SW_DRAWABLE_ID,element.getSouthWest());
+                cv.put(GameDataSchema.MapElementsTable.Cols.BUILDABLE,element.isBuildable());
+                cv.put(GameDataSchema.MapElementsTable.Cols.OWNER_NAME,element.getOwnerName());
+                if(!element.getOwnerName().equals(""))
+                {
+                    cv.put(GameDataSchema.MapElementsTable.Cols.STRUCTURE_DRAWABLE_ID,
+                            element.getStructure().getDrawableId());
+                }
+                db.insert(GameDataSchema.MapElementsTable.NAME,null,cv);
+            }
+        }
+    }
+
+    /**
+     * Loads the game
+     * @param context
+     */
     public void load(Context context) {
-        this.db = new GameDataDbHelper(
+        SQLiteDatabase db = new GameDataDbHelper(
                 context.getApplicationContext()
         ).getWritableDatabase();
 
@@ -220,6 +347,9 @@ public class  GameData implements Serializable {
             this.settings = gameDataCursor.loadSettings();
             this.money = gameDataCursor.loadMoney();
             this.gameTime = gameDataCursor.loadGameTime();
+            this.nResidential = gameDataCursor.loadNResidential();
+            this.nCommercial = gameDataCursor.loadNResidential();
+            this.population = gameDataCursor.loadPopulation();
             this.mapElements = new MapElement[settings.getMapHeight()][settings.getMapWidth()];
         } finally {
             gameDataCursor.close();
@@ -240,7 +370,7 @@ public class  GameData implements Serializable {
         try{
             mapElementCursor.moveToFirst();
             while(!mapElementCursor.isAfterLast()){
-                mapElementCursor.loadMapElement(mapElements,context);
+                mapElementCursor.loadMapElement(mapElements);
                 mapElementCursor.moveToNext();
             }
         } finally {
@@ -248,13 +378,6 @@ public class  GameData implements Serializable {
         }
     }
 
-    public void deleteDatabases()
-    {
-        String dropGameState = "DELETE FROM "+ GameDataSchema.NAME;
-        db.execSQL(dropGameState);
-        String dropMapElements = "DELETE FROM " + GameDataSchema.MapElementsTable.NAME;
-        db.execSQL(dropMapElements);
-    }
 
     /** --------- GETTERS & SETTERS ----------- **/
 
@@ -278,15 +401,6 @@ public class  GameData implements Serializable {
         this.settings = settings;
     }
 
-    public Bitmap getBitMapResources(int drawableId)
-    {
-        return BitmapFactory.decodeResource(context.getResources(),drawableId);
-    }
-
-    public Context getContext(){
-        return context;
-    }
-
     public void setMoney(int money) {
         this.money = money;
     }
@@ -294,6 +408,11 @@ public class  GameData implements Serializable {
     public void setGameTime(int gameTime) {
         this.gameTime = gameTime;
     }
+
+    public int getPopulation() {
+        return population;
+    }
+
 
     /** --------- PRIVATE METHODS ---------- **/
 
@@ -319,5 +438,18 @@ public class  GameData implements Serializable {
         }
 
         return isAdjacentToRoad;
+    }
+
+    public void deleteDatabases(Context context)
+    {
+        SQLiteDatabase db = new GameDataDbHelper(
+                context.getApplicationContext()
+        ).getWritableDatabase();
+
+        String dropGameState = "DROP TABLE IF EXISTS "+ GameDataSchema.NAME;
+        db.execSQL(dropGameState);
+        String dropMapElements = "DROP TABLE IF EXISTS " + GameDataSchema.MapElementsTable.NAME;
+        db.execSQL(dropMapElements);
+        db.close();
     }
 }

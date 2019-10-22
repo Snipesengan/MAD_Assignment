@@ -68,9 +68,6 @@ public class SettingsActivity extends AppCompatActivity {
         mapHeightValue.setText(Integer.toString(settings.getMapHeight()));
         initialMoneyValue.setText(Integer.toString(settings.getInitialMoney()));
 
-        //TODO: Create Events for setting activity
-
-
         mapWidthIncButton.setOnClickListener(new View.OnClickListener()
         {
             @Override public void onClick(View v)

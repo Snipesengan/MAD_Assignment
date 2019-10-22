@@ -5,6 +5,9 @@ public class GameDataSchema {
     public static final String NAME = "GameData";
     public static final String MONEY = "game_money";
     public static final String GAME_TIME = "game_time";
+    public static final String GAME_POPULATION = "game_population";
+    public static final String GAME_N_RESIDENTIAL = "game_n_residential";
+    public static final String GAME_N_COMMERCIAL = "game_n_commercial";
     public static final String MAP_WIDTH = "map_width";
     public static final String MAP_HEIGHT = "map_height";
     public static final String INITIAL_MONEY = "initial_money";

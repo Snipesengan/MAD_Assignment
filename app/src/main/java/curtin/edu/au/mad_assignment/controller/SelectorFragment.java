@@ -15,17 +15,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import curtin.edu.au.mad_assignment.R;
+import curtin.edu.au.mad_assignment.model.GameData;
 import curtin.edu.au.mad_assignment.model.Structure;
 import curtin.edu.au.mad_assignment.model.StructureData;
 
 public class SelectorFragment extends Fragment {
 
+    private GameData gameData;
     private SelectorAdapter selectorAdapter;
     private Structure selectedStructure;
     private int prevSelectedPosition;
     private int selectedPosition;
 
-    private SelectorFragment.OnStructureSelectedListener callback;
+    private OnFragmentInteractionListener callback;
 
     public SelectorFragment() {
         // Required empty public constructor
@@ -50,6 +52,7 @@ public class SelectorFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        gameData = GameData.getInstance();
         prevSelectedPosition = -1;
         selectedPosition = -1;
 
@@ -75,16 +78,14 @@ public class SelectorFragment extends Fragment {
         selectorAdapter = new SelectorAdapter();
         rv.setAdapter(selectorAdapter);
 
-        // TODO: Setup event handlers
-
         return view;
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof SelectorFragment.OnStructureSelectedListener) {
-            callback = (SelectorFragment.OnStructureSelectedListener) context;
+        if (context instanceof OnFragmentInteractionListener) {
+            callback = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnStructureSelectedListner");
@@ -97,7 +98,7 @@ public class SelectorFragment extends Fragment {
         callback = null;
     }
 
-    public interface OnStructureSelectedListener {
+    public interface OnFragmentInteractionListener {
 
         void onStructureSelectedListener(Structure structure);
     }
@@ -125,7 +126,8 @@ public class SelectorFragment extends Fragment {
     private class StructureVH extends RecyclerView.ViewHolder
     {
         private ImageView structureImg;
-        private TextView structureText;
+        private TextView structureType;
+        private TextView structureCost;
         private Structure bindStructure;
         private int vhPosition;
 
@@ -133,8 +135,8 @@ public class SelectorFragment extends Fragment {
         public StructureVH(LayoutInflater li, ViewGroup parent) {
             super(li.inflate(R.layout.list_selection, parent, false));
             structureImg = itemView.findViewById(R.id.structureImg);
-            structureText = itemView.findViewById(R.id.structureTxt);
-
+            structureType = itemView.findViewById(R.id.structureTxt);
+            structureCost = itemView.findViewById(R.id.structureCost);
 
             structureImg.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -161,7 +163,8 @@ public class SelectorFragment extends Fragment {
 
         public void bind(Structure structure, int position) {
             structureImg.setImageResource(structure.getDrawableId());
-            structureText.setText(structure.getLabel());
+            structureType.setText(structure.getLabel());
+            structureCost.setText("$ " + gameData.getStructureCost(structure));
 
             bindStructure = structure;
             vhPosition = position;

@@ -9,8 +9,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".controller.SettingsActivity"></activity>
-        <activity android:name=".controller.MapActivity" />
+        <activity android:name=".controller.SettingsActivity"
+            android:windowSoftInputMode="adjustPan"></activity>
+        <activity
+            android:name=".controller.MapActivity"
+            android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".controller.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

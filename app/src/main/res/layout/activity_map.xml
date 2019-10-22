@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".controller.MapActivity">
+    tools:context=".controller.MapActivity"
+    android:windowSoftInputMode="stateAlwaysHidden">
 
     <FrameLayout
         android:id="@+id/mapFrag_container"
@@ -29,4 +30,35 @@
         tools:layout_editor_absoluteY="8dp">
 
     </FrameLayout>
+
+    <ImageButton
+        android:id="@+id/updateGameButton"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        app:srcCompat="@drawable/ic_skip_next_black_24dp"
+        app:layout_constraintBottom_toBottomOf="@id/mapFrag_container"
+        app:layout_constraintRight_toRightOf="@id/mapFrag_container"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"/>
+
+    <FrameLayout
+        android:id="@+id/mapElementFrag_container"
+        app:layout_constraintBottom_toBottomOf="@id/mapFrag_container"
+        app:layout_constraintLeft_toLeftOf="@id/mapFrag_container"
+        app:layout_constraintRight_toRightOf="@id/mapFrag_container"
+        app:layout_constraintTop_toTopOf="@id/mapFrag_container"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" />
+
+    <Button
+        android:id="@+id/saveGameButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save Game"
+        app:layout_constraintTop_toTopOf="parent    "
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"/>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -77,6 +77,11 @@ public class MapElement implements Serializable {
         return yPos;
     }
 
+    public String getLocationString()
+    {
+        return "X: " + xPos + ", Y: " + yPos;
+    }
+
     /**
      * Retrieves the structure built on this map element.
      * @return The structure, or null if one is not present.

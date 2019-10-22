@@ -7,8 +7,8 @@ public class Settings implements Serializable {
     // MAKE SURE TO UPDATET THIS VALUE
     public static final int NUMBER_OF_SETTINGS = 11;
 
-    public static final int DEFAULT_MAP_WIDTH = 30;
-    public static final int DEFAULT_MAP_HEIGHT = 10;
+    public static final int DEFAULT_MAP_WIDTH = 1;
+    public static final int DEFAULT_MAP_HEIGHT = 1;
     public static final int DEFAULT_INITIAL_MONEY = 10000000;
     public static final int DEFAULT_FAMILY_SIZE = 4;
     public static final int DEFAULT_SHOP_SIZE = 6;

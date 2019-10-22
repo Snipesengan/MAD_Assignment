@@ -54,8 +54,6 @@ public class MainActivity extends AppCompatActivity implements Serializable {
         {
             @Override public void onClick(View v)
             {
-                //TODO: New Game Event
-
                 settings  = new Settings();
                 Intent settingsIntent = SettingsActivity.getIntent(MainActivity.this, settings);
                 // Start SettingsActivity for result
@@ -69,7 +67,10 @@ public class MainActivity extends AppCompatActivity implements Serializable {
         {
             @Override public void onClick(View v)
             {
-                //TODO: Load Game Event
+                gameData = GameData.getInstance();
+                gameData.load(MainActivity.this);
+                startActivity(new Intent(MainActivity.this, MapActivity.class));
+                finish();
             }
         });
 
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
         if(resultCode == RESULT_OK && requestCode == REQUEST_CODE_SETTINGS)
         {
             settings = SettingsActivity.getSettings(returnData);
-            gameData = GameData.getInstance(MainActivity.this);
+            gameData = GameData.getInstance();
             gameData.setSettings(settings);
             gameData.resetGame();
 

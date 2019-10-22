@@ -1,11 +1,7 @@
 package curtin.edu.au.mad_assignment.controller;
 
 import android.content.Context;
-import android.graphics.ColorFilter;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.graphics.PorterDuff;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -16,7 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import java.io.Serializable;
 
@@ -24,7 +20,6 @@ import curtin.edu.au.mad_assignment.R;
 import curtin.edu.au.mad_assignment.model.GameData;
 import curtin.edu.au.mad_assignment.model.MapElement;
 import curtin.edu.au.mad_assignment.model.Settings;
-import curtin.edu.au.mad_assignment.model.Structure;
 
 public class MapFragment extends Fragment implements Serializable {
 
@@ -33,8 +28,9 @@ public class MapFragment extends Fragment implements Serializable {
     private MapElement selectedMapElement;
     private int prevSelectedPosition;
     private int selectedPosition;
+    private TextView gameTimeTV, moneyTV, incomeTV,popTV,employmentTV;
 
-    private MapFragment.OnMapElementSelectedListener callback;
+    private OnFragmentInteractionListener callback;
 
     public MapFragment() {
         // Required empty public constructor
@@ -55,13 +51,37 @@ public class MapFragment extends Fragment implements Serializable {
         selectedPosition = -1;
     }
 
+    /**
+     * Notifies the adapter that a MapElement has been updated
+     * @param xPos
+     * @param yPos
+     */
+    public void notifyMapElementChanged(int xPos,int yPos)
+    {
+        int absPos = xPos * gameData.getSettings().getMapHeight() + yPos;
+        mapAdapter.notifyItemChanged(absPos);
+    }
+
+    /**
+     * Update the the details of display to reflect the most recent game state
+     */
+    public void updateGameDetail()
+    {
+        gameTimeTV.setText(Integer.toString(gameData.getGameTime()));
+        moneyTV.setText(Integer.toString(gameData.getMoney()));
+        incomeTV.setText(Double.toString(gameData.getIncome()));
+        popTV.setText(Integer.toString(gameData.getPopulation()));
+        employmentTV.setText(Double.toString(gameData.getEmploymentRate()));
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        gameData = GameData.getInstance(getActivity());
+        gameData = GameData.getInstance();
         selectedMapElement = null;
         prevSelectedPosition = -1;
         selectedPosition = -1;
+
     }
 
     @Override
@@ -69,6 +89,11 @@ public class MapFragment extends Fragment implements Serializable {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
+        gameTimeTV = view.findViewById(R.id.timer);
+        moneyTV = view.findViewById(R.id.money);
+        incomeTV = view.findViewById(R.id.income);
+        popTV = view.findViewById(R.id.population);
+        employmentTV = view.findViewById(R.id.employment);
 
         RecyclerView rv = view.findViewById(R.id.mapRecyclerView);
 
@@ -85,6 +110,8 @@ public class MapFragment extends Fragment implements Serializable {
         mapAdapter = new MapAdapter();
         rv.setAdapter(mapAdapter);
 
+        // Update Game Details Screen
+        updateGameDetail();
 
         return view;
     }
@@ -92,11 +119,11 @@ public class MapFragment extends Fragment implements Serializable {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnMapElementSelectedListener) {
-            callback = (MapFragment.OnMapElementSelectedListener) context;
+        if (context instanceof OnFragmentInteractionListener) {
+            callback = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnMapElementSelectedListener");
+                    + " must implement OnFragmentInteractionListener");
         }
     }
 
@@ -106,7 +133,7 @@ public class MapFragment extends Fragment implements Serializable {
         callback = null;
     }
 
-    public interface OnMapElementSelectedListener {
+    public interface OnFragmentInteractionListener {
 
         void onMapElementSelected(MapElement mapElement, int xPos, int yPos);
     }
