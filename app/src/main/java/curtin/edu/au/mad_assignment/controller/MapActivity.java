@@ -4,15 +4,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
-
-import java.io.Serializable;
 
 import curtin.edu.au.mad_assignment.R;
 import curtin.edu.au.mad_assignment.model.GameData;
@@ -25,20 +25,26 @@ public class MapActivity extends AppCompatActivity implements
         MapElementFragment.OnFragmentInteractionListener {
 
 
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private GameData gameData;
     private MapFragment mapFg;
     private SelectorFragment selFg;
     private MapElementFragment mapEFragment;
     private ImageButton updateGameButton;
     private Button saveGameButton;
+    private Button menuButton;
+    private MapElement selectedMapElement;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        //Finding UI elements
         gameData = GameData.getInstance();
         updateGameButton = findViewById(R.id.updateGameButton);
         saveGameButton = findViewById(R.id.saveGameButton);
+        menuButton = findViewById(R.id.menuButton);
 
         /**
          *  This Activity will contain 3 Fragments
@@ -88,10 +94,17 @@ public class MapActivity extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
 
-                try //TODO: Handle Exceptions for game updates in MapActivity
+                try
                 {
                     gameData.update();
-                }finally{}
+                    if(gameData.isGameLost())
+                    {
+                        findViewById(R.id.gameOverText).setAlpha(1);
+                    }
+                }
+                catch(IllegalArgumentException e){
+                    Toast.makeText(MapActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
 
                 // Updating UI Element/Fragments
                 mapFg.updateGameDetail();
@@ -103,17 +116,29 @@ public class MapActivity extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
 
-                try //TODO: Handle Exceptions for saving game in MapActivity
+                try
                 {
                     gameData.dropAllDatabases(MapActivity.this);
                     gameData.save(MapActivity.this);
 
-                }finally
+                }
+                catch(IllegalArgumentException e){
+                   Toast.makeText(MapActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
+                }
+                finally
                 {
                     Toast.makeText(MapActivity.this, "Game successfully saved", Toast.LENGTH_SHORT).show();
                 }
 
 
+            }
+        });
+
+        // When pressed, finish returns the the menu
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
             }
         });
     }
@@ -136,6 +161,13 @@ public class MapActivity extends AppCompatActivity implements
          *
          **/
 
+        selectedMapElement = mapElement;
+        // Try to show MapElementFragment
+        if(mapElement.getStructure() != null)
+        {
+            mapEFragment.updateMapElement(mapElement);
+            getSupportFragmentManager().beginTransaction().show(mapEFragment).commit();
+        }
 
         // Try to construct structure on the cell
         if(selFg.getSelectedStructure() != null)
@@ -145,19 +177,14 @@ public class MapActivity extends AppCompatActivity implements
             {
                 gameData.buildStructure(xPos, yPos, structureToBeBuilt, structureToBeBuilt.getLabel());
                 mapFg.updateGameDetail();
+                mapEFragment.updateMapElement(mapElement);
+                getSupportFragmentManager().beginTransaction().show(mapEFragment).commit();
             }
             catch(IllegalArgumentException e)
             {
                 Toast.makeText(MapActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
             selFg.deselectStructure();
-
-        }// Start Structure Details Fragment if they have selected a structure
-        else if(mapElement.getStructure() != null)
-        {
-            FragmentManager fm = getSupportFragmentManager();
-            mapEFragment.updateMapElement(mapElement);
-            fm.beginTransaction().show(mapEFragment).commit();
         }
 
         mapFg.deselectMapElement();
@@ -174,21 +201,13 @@ public class MapActivity extends AppCompatActivity implements
          *          This fragment contains information about the structure
          *
          */
-
-//        if(mapFg.getSelectedMapElement() != null)
-//        {
-//            mapFg.deselectMapElement();
-//        }
     }
 
     @Override
     public void onDemolishButtonPressed(MapElement mapElement) {
 
         /**
-         *  Called when the user taps on the demolish button of MapELementFragment
-         *
-         * 
-         *
+         *  Called when the user taps on the demolish button of MapElementFragment
          */
 
         try
@@ -227,14 +246,38 @@ public class MapActivity extends AppCompatActivity implements
         finally{
             Toast.makeText(MapActivity.this, "Name updated", Toast.LENGTH_SHORT).show();
         }
-        MapActivity.hideKeyboard(this);
+        MapActivity.hideSoftKeyboard(this);
+    }
+
+    /**
+     * Feature for taking a thumbnail photo, by invoking the camera app.
+     * @param mapElement Thumbnail photo saved here
+     */
+    @Override
+    public void onUpdateThumbnail(MapElement mapElement) {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            selectedMapElement.setBitmap(imageBitmap);
+            mapFg.notifyMapElementChanged(selectedMapElement.getxPos(),selectedMapElement.getyPos());
+        }
     }
 
 
     /** REF: https://stackoverflow.com/questions/1109022/close-hide-the-android-soft-keyboard **/
-    public static void hideKeyboard(Activity activity) {
+    public static void hideSoftKeyboard(Activity activity) {
         InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-
         View view = activity.getCurrentFocus();
         //If no view currently has focus, create a new one, just so we can grab a window token from it
         if (view == null) {

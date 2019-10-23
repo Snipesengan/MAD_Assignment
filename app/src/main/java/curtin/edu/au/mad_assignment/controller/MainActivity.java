@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 gameData = GameData.getInstance();
                 gameData.load(MainActivity.this);
                 startActivity(new Intent(MainActivity.this, MapActivity.class));
-                finish();
             }
         });
 
@@ -90,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements Serializable {
             gameData.resetGame();
 
             startActivity(new Intent(MainActivity.this, MapActivity.class));
-            finish();
         } // RETURN TO MENU FROM SETTINGS SCREEN
         else if(resultCode != RESULT_OK && requestCode == REQUEST_CODE_SETTINGS)
         {

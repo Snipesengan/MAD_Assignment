@@ -17,10 +17,6 @@ import curtin.edu.au.mad_assignment.model.Settings;
 public class SettingsActivity extends AppCompatActivity {
 
     private static final String SETTINGS = "curtin.edu.au.mad_assignment.controller.settings";
-
-    private ImageButton mapWidthIncButton, mapWidthDecButton;
-    private ImageButton mapHeightIncButton, mapHeightDecButton;
-    private ImageButton initialMoneyDecButton, initialMoneyIncButton;
     private Button confirmButton, backButton;
     private TextView mapWidthValue, mapHeightValue, initialMoneyValue;
 
@@ -51,14 +47,8 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         // Get References to Views/buttons
-        mapWidthIncButton = findViewById(R.id.mapWidthIncButton);
-        mapWidthDecButton = findViewById(R.id.mapWidthDecButton);
-        mapHeightIncButton = findViewById(R.id.mapHeightIncButton);
-        mapHeightDecButton = findViewById(R.id.mapHeightDecButton);
         mapWidthValue = findViewById(R.id.mapWidthValue);
         mapHeightValue = findViewById(R.id.mapHeightValue);
-        initialMoneyDecButton = findViewById(R.id.initialMoneyDecButton);
-        initialMoneyIncButton = findViewById(R.id.initialMoneyIncButton);
         initialMoneyValue = findViewById(R.id.initialMoneyValue);
         confirmButton = findViewById(R.id.confirmSettingsButton);
         backButton = findViewById(R.id.cancelSettingsButton);
@@ -68,104 +58,23 @@ public class SettingsActivity extends AppCompatActivity {
         mapHeightValue.setText(Integer.toString(settings.getMapHeight()));
         initialMoneyValue.setText(Integer.toString(settings.getInitialMoney()));
 
-        mapWidthIncButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override public void onClick(View v)
-            {
-                try
-                {
-                    settings.setMapWidth(settings.getMapWidth() + 1);
-                    mapWidthValue.setText(Integer.toString(settings.getMapWidth()));
-                }catch(IllegalArgumentException e){
-                    Toast.makeText(SettingsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
-
-        mapWidthDecButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override public void onClick(View v)
-            {
-                try
-                {
-                    settings.setMapWidth(settings.getMapWidth() - 1);
-                    mapWidthValue.setText(Integer.toString(settings.getMapWidth()));
-                }catch(IllegalArgumentException e){
-                    Toast.makeText(SettingsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
-
-        mapHeightIncButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override public void onClick(View v)
-            {
-                try
-                {
-                    settings.setMapHeight(settings.getMapHeight() + 1);
-                    mapHeightValue.setText(Integer.toString(settings.getMapHeight()));
-                }catch(IllegalArgumentException e){
-                    Toast.makeText(SettingsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
-
-        mapHeightDecButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override public void onClick(View v)
-            {
-                try
-                {
-                    settings.setMapHeight(settings.getMapHeight() - 1);
-                    mapHeightValue.setText(Integer.toString(settings.getMapHeight()));
-                }catch(IllegalArgumentException e){
-                    Toast.makeText(SettingsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
-
-        initialMoneyIncButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override public void onClick(View v)
-            {
-                try
-                {
-                    settings.setInitialMoney(settings.getInitialMoney() + 1);
-                    initialMoneyValue.setText(Integer.toString(settings.getInitialMoney()));
-                }catch(IllegalArgumentException e){
-                    Toast.makeText(SettingsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
-
-        initialMoneyDecButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override public void onClick(View v)
-            {
-                try
-                {
-                    settings.setInitialMoney(settings.getInitialMoney() - 1);
-                    initialMoneyValue.setText(Integer.toString(settings.getInitialMoney()));
-                }catch(IllegalArgumentException e){
-                    Toast.makeText(SettingsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-
         confirmButton.setOnClickListener(new View.OnClickListener()
         {
             @Override public void onClick(View v)
             {
                 Intent returnData = new Intent();
-                returnData.putExtra(SETTINGS,settings);
-                setResult(RESULT_OK, returnData);
-                finish();
+
+                try {
+                    settings.setMapHeight(Integer.parseInt(mapHeightValue.getText().toString()));
+                    settings.setMapWidth(Integer.parseInt(mapWidthValue.getText().toString()));
+                    settings.setInitialMoney(Integer.parseInt(initialMoneyValue.getText().toString()));
+                    returnData.putExtra(SETTINGS,settings);
+                    setResult(RESULT_OK, returnData);
+                    finish();
+                }catch(IllegalArgumentException e)
+                {
+                    Toast.makeText(SettingsActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

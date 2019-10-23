@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,6 +29,7 @@ public class MapFragment extends Fragment implements Serializable {
     private MapElement selectedMapElement;
     private int prevSelectedPosition;
     private int selectedPosition;
+    private FrameLayout gameDetailsView;
     private TextView gameTimeTV, moneyTV, incomeTV,popTV,employmentTV;
 
     private OnFragmentInteractionListener callback;
@@ -39,10 +41,6 @@ public class MapFragment extends Fragment implements Serializable {
     public static MapFragment newInstance() {
         MapFragment fragment = new MapFragment();
         return fragment;
-    }
-
-    public MapElement getSelectedMapElement(){
-        return selectedMapElement;
     }
 
     public void deselectMapElement(){
@@ -69,9 +67,9 @@ public class MapFragment extends Fragment implements Serializable {
     {
         gameTimeTV.setText(Integer.toString(gameData.getGameTime()));
         moneyTV.setText(Integer.toString(gameData.getMoney()));
-        incomeTV.setText(Double.toString(gameData.getIncome()));
+        incomeTV.setText(Double.toString(Math.round(gameData.getIncome())));
         popTV.setText(Integer.toString(gameData.getPopulation()));
-        employmentTV.setText(Double.toString(gameData.getEmploymentRate()));
+        employmentTV.setText(Double.toString(Math.round(gameData.getEmploymentRate())));
     }
 
     @Override
@@ -88,17 +86,13 @@ public class MapFragment extends Fragment implements Serializable {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
+        gameDetailsView = view.findViewById(R.id.game_details_container);
 
-        gameTimeTV = view.findViewById(R.id.timer);
-        moneyTV = view.findViewById(R.id.money);
-        incomeTV = view.findViewById(R.id.income);
-        popTV = view.findViewById(R.id.population);
-        employmentTV = view.findViewById(R.id.employment);
-
+        // Inflating child layouts
+        View childView = inflater.inflate(R.layout.game_details, gameDetailsView,true);
         RecyclerView rv = view.findViewById(R.id.mapRecyclerView);
 
-
-        // Specifying how RV should be laid out
+        // Specifying how rv should be laid out
         Settings settings = gameData.getSettings();
         rv.setLayoutManager(new GridLayoutManager(
                 getActivity(),
@@ -109,6 +103,13 @@ public class MapFragment extends Fragment implements Serializable {
         // mapAdapter requires MapElements[][] to inflate each grid cell with structureImgLayer/terrain img.
         mapAdapter = new MapAdapter();
         rv.setAdapter(mapAdapter);
+
+        // Finding UI elements
+        gameTimeTV = childView.findViewById(R.id.timer);
+        moneyTV = childView.findViewById(R.id.money);
+        incomeTV = childView.findViewById(R.id.income);
+        popTV = childView.findViewById(R.id.population);
+        employmentTV = childView.findViewById(R.id.employment);
 
         // Update Game Details Screen
         updateGameDetail();
@@ -226,7 +227,15 @@ public class MapFragment extends Fragment implements Serializable {
 
             // Set image resources for structure layer
             if (mapElement.getStructure() != null) {
-                structureImgLayer.setImageResource(mapElement.getStructure().getDrawableId());
+                if(mapElement.getBitmap() == null)
+                {
+                    structureImgLayer.setImageResource(mapElement.getStructure().getDrawableId());
+                }
+                else
+                {
+                    structureImgLayer.setImageBitmap(mapElement.getBitmap());
+                }
+
                 structureImgLayer.setAlpha(255);
             }
             else

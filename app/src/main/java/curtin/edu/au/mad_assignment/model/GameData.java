@@ -22,6 +22,7 @@ public class  GameData implements Serializable {
     private int gameTime;
     private int population;
     private int nResidential, nCommercial;
+    boolean isGameLost;
 
     public GameData(Settings settings) {
         this.settings = settings;
@@ -31,6 +32,7 @@ public class  GameData implements Serializable {
         nCommercial = 0;
         nResidential = 0;
         population = 0;
+        isGameLost = false;
     }
 
     public static GameData getInstance(){
@@ -48,26 +50,33 @@ public class  GameData implements Serializable {
         nCommercial = 0;
         nResidential = 0;
         population = 0;
+        isGameLost = false;
         regenerateMap();
     }
 
     public void update()
     {
+        if(isGameLost){
+            throw new IllegalArgumentException("Game lost");
+        }
         gameTime += 1;
         money += getIncome();
         population = nResidential * settings.getFamilySize();
 
-        //TODO: Update Database for game update()
+        if(money == 0)
+        {
+            isGameLost = true;
+        }
     }
 
-    /** ------- GAME FUNCTIONALITY METHODS -----**/
+    // ------- GAME FUNCTIONALITY METHODS -----
 
     /**
      *
      * Place a structure on the map by modifying the contents of gameElements array.
-     * @param xPos
-     * @param yPos
-     * @param structure
+     * @param xPos y map element
+     * @param yPos x position of map element
+     * @param structure: structure to be built
      *
      * Assertions:
      *  - Player must be able to afford structure
@@ -124,15 +133,13 @@ public class  GameData implements Serializable {
         {
             throw new UnknownStructureException("Unknown structure of type " + structure + structure.getLabel());
         }
-
-        // TODO: UPDATE DATABASES ON CONSTRUCTION
     }
 
 
     /**
      *  Demolishes a structure.
-     * @param xPos
-     * @param yPos
+     * @param xPos x position
+     * @param yPos y position
      *
      * Assertions:
      *  - A structure must exists at mapElement[yPos][xPos]
@@ -162,14 +169,12 @@ public class  GameData implements Serializable {
         {
             throw new UnknownStructureException("Unknown structure of type " + toBDemo + toBDemo.getLabel());
         }
-
-        // TODO: UPDATE DATABASE ON DEMOLITION
     }
 
     /**
      *  Regenerates the map. Overwrite the content of mapElements
      */
-    public void regenerateMap()
+    private void regenerateMap()
     {
         MapData mapData = MapData.getInstance();
         mapData.regenerate();
@@ -184,7 +189,6 @@ public class  GameData implements Serializable {
     /**
      * Returns cost of a structure. This method couples with StructureData in order to determine the
      * type of structure.
-     * @param structure
      * @return Cost of the structure
      */
     public int getStructureCost(Structure structure) {
@@ -227,7 +231,7 @@ public class  GameData implements Serializable {
         return population * (getEmploymentRate() * settings.getSalary() * settings.getTaxRate() - settings.getServiceCost());
     }
 
-    /** ------- EXCEPTIONS CLASSES------ **/
+    // Exception classes
 
     /**
      * Throw this exception whenever the game has not implemented the functionality for this
@@ -260,9 +264,12 @@ public class  GameData implements Serializable {
      * Saves the game.
      * WARNING: This will re-create all the database by explicitly calling SQLiteDBHelper onCreate()
      * May have un-intended consequences?
-     * @param context
      */
     public void save(Context context) {
+
+        if(isGameLost){
+            throw new IllegalArgumentException("Cannot save a lost game");
+        }
 
         ContentValues cv;
         dropAllDatabases(context);
@@ -323,7 +330,6 @@ public class  GameData implements Serializable {
 
     /**
      * Loads the game
-     * @param context
      */
     public void load(Context context) {
         SQLiteDatabase db = new GameDataDbHelper(
@@ -413,6 +419,10 @@ public class  GameData implements Serializable {
         return population;
     }
 
+    public boolean isGameLost(){
+        return isGameLost;
+    }
+
 
     /** --------- PRIVATE METHODS ---------- **/
 
@@ -438,18 +448,5 @@ public class  GameData implements Serializable {
         }
 
         return isAdjacentToRoad;
-    }
-
-    public void deleteDatabases(Context context)
-    {
-        SQLiteDatabase db = new GameDataDbHelper(
-                context.getApplicationContext()
-        ).getWritableDatabase();
-
-        String dropGameState = "DROP TABLE IF EXISTS "+ GameDataSchema.NAME;
-        db.execSQL(dropGameState);
-        String dropMapElements = "DROP TABLE IF EXISTS " + GameDataSchema.MapElementsTable.NAME;
-        db.execSQL(dropMapElements);
-        db.close();
     }
 }

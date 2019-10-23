@@ -16,7 +16,7 @@ public class MapElement implements Serializable {
     private final int terrainNorthEast;
     private final int terrainSouthEast;
 
-    private ProxyBitmap bitmap;
+    private Bitmap bitmap;
     private Structure structure;
     private String ownerName;
     private int xPos,yPos;
@@ -40,8 +40,8 @@ public class MapElement implements Serializable {
         return ownerName;
     }
 
-    public Bitmap getImage() {
-        return bitmap.getBitmap();
+    public Bitmap getBitmap() {
+        return bitmap;
     }
 
     public boolean isBuildable()
@@ -100,4 +100,7 @@ public class MapElement implements Serializable {
         this.ownerName = ownerName;
     }
 
+    public void setBitmap(Bitmap bitmap) {
+        this.bitmap = bitmap;
+    }
 }

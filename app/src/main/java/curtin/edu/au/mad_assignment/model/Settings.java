@@ -7,9 +7,9 @@ public class Settings implements Serializable {
     // MAKE SURE TO UPDATET THIS VALUE
     public static final int NUMBER_OF_SETTINGS = 11;
 
-    public static final int DEFAULT_MAP_WIDTH = 1;
-    public static final int DEFAULT_MAP_HEIGHT = 1;
-    public static final int DEFAULT_INITIAL_MONEY = 10000000;
+    public static final int DEFAULT_MAP_WIDTH = 30;
+    public static final int DEFAULT_MAP_HEIGHT = 10;
+    public static final int DEFAULT_INITIAL_MONEY = 1000;
     public static final int DEFAULT_FAMILY_SIZE = 4;
     public static final int DEFAULT_SHOP_SIZE = 6;
     public static final int DEFAULT_SALARY = 10;
@@ -61,7 +61,7 @@ public class Settings implements Serializable {
         }
 
         if(mapWidth > MapData.WIDTH){
-            throw new IllegalArgumentException("Maximum width reached");
+            throw new IllegalArgumentException("Widthmust be less than " + MapData.WIDTH);
         }
 
         this.mapWidth = mapWidth;
@@ -77,7 +77,7 @@ public class Settings implements Serializable {
         }
 
         if(mapHeight > MapData.HEIGHT){
-            throw new IllegalArgumentException("Maximum height reached");
+            throw new IllegalArgumentException("Height must be less than " + MapData.HEIGHT);
         }
 
         this.mapHeight = mapHeight;
@@ -88,7 +88,7 @@ public class Settings implements Serializable {
     }
 
     public void setInitialMoney(int initialMoney) {
-        if(initialMoney <= 0){
+        if(initialMoney < 1000){
             throw new IllegalArgumentException("Initial money must be greater than zero");
         }
         this.initialMoney = initialMoney;

@@ -1,12 +1,12 @@
 package curtin.edu.au.mad_assignment.controller;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
-import android.text.InputType;
-import android.text.method.KeyListener;
+import android.provider.MediaStore;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -18,12 +18,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.Map;
-
 import curtin.edu.au.mad_assignment.R;
 import curtin.edu.au.mad_assignment.model.MapElement;
-import curtin.edu.au.mad_assignment.model.Structure;
-import curtin.edu.au.mad_assignment.model.StructureData;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -133,7 +129,7 @@ public class MapElementFragment extends Fragment {
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
                 if(i == KeyEvent.KEYCODE_ENTER)
                 {
-                    MapActivity.hideKeyboard(getActivity());
+                    MapActivity.hideSoftKeyboard(getActivity());
                     ownerNameETV.setFocusable(false);
                     return true;
                 }
@@ -141,11 +137,24 @@ public class MapElementFragment extends Fragment {
             }
         });
 
+        /**
+         * Focused when touched
+         */
         ownerNameETV.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 ownerNameETV.setFocusableInTouchMode(true);
                 return false;
+            }
+        });
+
+        /**
+         * Functionality to start the camera app when touched...
+         */
+        structureImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                callback.onUpdateThumbnail(mapElement);
             }
         });
 
@@ -177,5 +186,7 @@ public class MapElementFragment extends Fragment {
         void onDemolishButtonPressed(MapElement mapElement);
 
         void onUpdateMapElementName(MapElement mapElement, String name);
+
+        void onUpdateThumbnail(MapElement mapElement);
     }
 }
