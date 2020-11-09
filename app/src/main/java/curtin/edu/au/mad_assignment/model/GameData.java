@@ -143,14 +143,19 @@ public class  GameData implements Serializable {
      *
      * Assertions:
      *  - A structure must exists at mapElement[yPos][xPos]
+     *  - Cannot destroy a Road structure when there are adjacent building
      */
-    public void demolishStructure(int xPos, int yPos)
-    {
+    public void demolishStructure(int xPos, int yPos) {
         MapElement me = mapElements[yPos][xPos];
         Structure toBDemo = me.getStructure();
-        if(toBDemo == null)
-        {
+        if (toBDemo == null) {
             throw new IllegalArgumentException("Structure DNE at: " + mapElements[yPos][xPos].getLocationString());
+        }
+
+        if (StructureData.isRoad(toBDemo)){
+            if(isAdjacentToBuilding(xPos,yPos)){
+                throw new IllegalArgumentException("Cannot destroy road while there are adjacent buildings");
+            }
         }
 
         me.setStructure(null);
@@ -215,7 +220,7 @@ public class  GameData implements Serializable {
         return cost;
     }
 
-    public double getEmploymentRate()
+    public double getEmploymentRate() // Need to double check
     {
         double rate = 0;
 
@@ -443,6 +448,30 @@ public class  GameData implements Serializable {
             isAdjacentToRoad = true;
         }
         else if(xPos < (settings.getMapWidth() - 1) && mapElements[yPos][xPos + 1].getStructure() != null && StructureData.isRoad(mapElements[yPos][xPos + 1].getStructure()))
+        {
+            isAdjacentToRoad = true;
+        }
+
+        return isAdjacentToRoad;
+    }
+
+    private boolean isAdjacentToBuilding(int xPos, int yPos)
+    {
+        boolean isAdjacentToRoad = false;
+
+        if(yPos > 0 && mapElements[yPos - 1][xPos].getStructure() != null && !StructureData.isRoad(mapElements[yPos - 1][xPos].getStructure()))
+        {
+            isAdjacentToRoad = true;
+        }
+        else if(yPos < (settings.getMapHeight() - 1) && mapElements[yPos + 1][xPos].getStructure() != null && !StructureData.isRoad(mapElements[yPos + 1][xPos].getStructure()))
+        {
+            isAdjacentToRoad = true;
+        }
+        else if(xPos > 0 && mapElements[yPos][xPos - 1].getStructure() != null && !StructureData.isRoad(mapElements[yPos][xPos - 1].getStructure()))
+        {
+            isAdjacentToRoad = true;
+        }
+        else if(xPos < (settings.getMapWidth() - 1) && mapElements[yPos][xPos + 1].getStructure() != null && !StructureData.isRoad(mapElements[yPos][xPos + 1].getStructure()))
         {
             isAdjacentToRoad = true;
         }

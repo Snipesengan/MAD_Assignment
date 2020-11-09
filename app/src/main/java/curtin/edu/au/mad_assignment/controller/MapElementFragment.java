@@ -21,15 +21,6 @@ import android.widget.TextView;
 import curtin.edu.au.mad_assignment.R;
 import curtin.edu.au.mad_assignment.model.MapElement;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link MapElementFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link MapElementFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-
 public class MapElementFragment extends Fragment {
 
     /**
@@ -39,6 +30,19 @@ public class MapElementFragment extends Fragment {
      *      - structureType (immutable): {"Residential","Commercial","Road"}
      *      - editableName: name of the structure
      *      - Feature for taking a thumbnail
+     *
+     *  Callback attached to calling activity
+     *      +  void onCloseMapElementDetails()
+     *          - When the user hits the close button
+     *
+     *      +   void onDemolishButtonPressed(MapElement mapElement)
+     *          - When the user hits the demolish button
+     *
+     *      +   void onUpdateMapElementName(MapElement mapElement, String name)
+     *          - When the user change the name of the map element
+     *
+     *      +   void onUpdateThumbnail(MapElement mapElement)
+     *          - When user wants the change the thumbnail
      *
      */
     private static final String MAP_ELEMENT = "curtin.edu.au.mad_assignment.controller.MapElementFragment.MAP_ELEMENT";

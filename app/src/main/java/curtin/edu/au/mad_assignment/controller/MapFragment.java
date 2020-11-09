@@ -24,6 +24,13 @@ import curtin.edu.au.mad_assignment.model.Settings;
 
 public class MapFragment extends Fragment implements Serializable {
 
+    /**
+     * This Fragment contains the Recycler View responsible for representing the tiles on the map.
+     * Callbacks methods attached to the calling activity:
+     *  + void onMapElementSelected(MapElement mapElement, int xPos, int yPos)
+     *      - called when the user selects an structure on the map
+     */
+
     private MapAdapter mapAdapter;
     private GameData gameData;
     private MapElement selectedMapElement;
